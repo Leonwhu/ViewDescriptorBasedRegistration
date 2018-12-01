@@ -187,3 +187,11 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+ViewDescriptorBasedRegistration/50-SimilarityResult.txt
+ViewDescriptorBasedRegistration/depth3D.txt
+*.png
+*.txt
+ViewDescriptorBasedRegistration/标头.h
+*.las
+ViewDescriptorBasedRegistration/灰度图.jpg
+ViewDescriptorBasedRegistration/标头.h
