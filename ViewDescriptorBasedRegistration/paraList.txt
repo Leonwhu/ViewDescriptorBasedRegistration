@@ -1,0 +1,17 @@
+1.0
+4.0
+3.0
+1.5
+C:\data\ALS-TLS\test-65000-65100-viewpoints.las
+C:\data\ALS-TLS\ALS_3D_65000_65100
+C:\data\ALS-TLS\test-TLS_2D
+
+
+//Notification
+1  resolution of ALS grid
+2  resolution of sky division
+3  min valid distance of TLS scanner
+4  height of scanner
+5  path ALS viewpoints
+6  path ALS 2D image/3D image
+7  path TLS 2D image
