@@ -15,6 +15,9 @@ public:
 
 	//给定ALS点云，生成视角点，采用格网中心
 	bool getViewsFromALS_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudViews, float resolution);
+	
+	bool getALSGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS, vector<short> *propsClassification, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSNonground);
+	bool getViewsFromALS_GroundSample(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudViews, float resolution);
 protected:
 private:
 };

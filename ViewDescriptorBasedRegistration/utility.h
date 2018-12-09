@@ -29,6 +29,9 @@
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/contrib/contrib.hpp>
 
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+#include <glog/logging.h>
+
 #include "pcl/point_cloud.h"
 
 

@@ -16,6 +16,7 @@ public:
 	void outputTLSViewDescriptors3DImage();
 	void outputTLSViewDescriptors2DImage(); 
 	void read2DImagesAsDescriptors(vector<string> &fileNames);
+	void read3DImagesAsDescriptors(vector<string> &fileNames);
 
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> *cloudTLS;
 	vector<ViewDescriptor> *TLSDescriptors;

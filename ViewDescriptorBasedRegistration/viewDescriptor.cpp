@@ -33,11 +33,11 @@ bool ViewDescriptor::generateDescriptor()
 		count = ny + nx*Nh;
 		if (viewDepth[count] < 0.0)
 			viewDepth[count] = distance;
-		else if (viewDepth[count] < distance)
+		else if (viewDepth[count] > distance)
 			viewDepth[count] = distance;
 	}
 	calculateSVFValue();
-	convert2DImage();
+	convert2DImage(200.0f);
 	return 1;
 }
 
@@ -126,13 +126,13 @@ void ViewDescriptor::convert2DImage()
 		{
 			//深度距离归化到指定值
 			float distance = 100.0;
-			M.at<uchar>(i, j) = min(viewDepth[j + i*Nh] - minDist, distance) * 255.0 / distance;
+			M.at<uchar>(i, j) = min(viewDepth[j + i*Nh] - minDist, distance) * 200.0 / distance;
 		}
 	}
 	this->depthimage = M;
 }
 
-void ViewDescriptor::convert2DImage(float &maxDist2Grey)
+void ViewDescriptor::convert2DImage(float maxDist2Grey)
 {
 	//Mat M(Nv, Nh, CV_32FC1);//创建一个灰度图的Mat对象
 	Mat M(Nv, Nh, CV_8UC1);//创建一个灰度图的Mat对象
@@ -146,4 +146,46 @@ void ViewDescriptor::convert2DImage(float &maxDist2Grey)
 		}
 	}
 	this->depthimage = M;
+}
+
+void ViewDescriptor::filterNoiseBy2DDensity(int radius, int minNum)
+{
+	if (this->Nv ==0 || this->Nh ==0)
+	{
+		cout << "未指定特征分辨率！" << endl;
+		return;
+	}
+	vector<int> pDensity;
+	for (int i = 0;i < this->Nv;++i)
+	{
+		for (int j = 0; j < this->Nh; ++j)
+		{
+			//遍历radius范围内的所有邻域
+			int numNeigh = 0; //邻域个数
+			int numHasPoint = 0; //邻域中的点个数
+			for (int m = i - radius; m < i + radius; ++m)
+			{				
+				for (int n = j - radius; n < j + radius; ++n)
+				{
+					//垂直方向有上下界,水平方向边界循环
+					if (m >= 0 && m < this->Nv )
+					{
+						int t;
+						if (n >= this->Nh)
+							t = n - this->Nh;
+						else if (n < 0)
+							t = n + this->Nh;
+						else
+							t = n;
+						numNeigh++;
+						if (this->viewDepth[t + m*this->Nh] > 0.0)
+							numHasPoint++;
+
+					}
+				}
+			}
+			if (numHasPoint <= minNum)
+				this->viewDepth[j + i*this->Nh] = -1.0;
+		}
+	}
 }

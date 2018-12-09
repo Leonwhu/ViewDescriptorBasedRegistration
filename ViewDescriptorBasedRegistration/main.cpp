@@ -6,6 +6,8 @@
 #include "TLSViewDescriptor.h"
 #include "similarityEstimation.h"
 
+
+
 using namespace std;
 using namespace cv;
 using namespace utility;
@@ -15,47 +17,54 @@ using namespace utility;
 void main()
 {
 	//timing
+	FLAGS_log_dir = "C:\\logs\\";
+	FLAGS_logbufsecs = 0;	//实时输出
+	google::InitGoogleLogging("Point2Model");
+
 	DWORD t1, t2;
-	/*-------1. 数据读取------*/
-	//读入机载数据
 	DataIo io;
 	io.readParalist("paraList.txt");
-
-	/*Bounds boundsALS;
+	/*-------1. 数据读取------*/
+	//读入机载数据
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS(new pcl::PointCloud<pcl::PointXYZ>);
+	Bounds boundsALS;
 	CenterPoint centerALS;
 	int ptNumALS;
+	vector<short> *alsClass = new vector<short>();
 	string pathALS;
 	cout << "Please input the ALS data:" << endl;
-	cin >> pathALS;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS(new pcl::PointCloud<pcl::PointXYZ>);
-	io.readLasData(pathALS, cloudALS, boundsALS, centerALS, ptNumALS);*/
+	cin >> pathALS;		
+	io.readLasData(pathALS, cloudALS, boundsALS, centerALS, ptNumALS, alsClass);*/
 
-	////读入地面站数据
-	//string pathTLSFolder;
-	//cout << "Please input the TLS data folder:" << endl;
-	//cin >> pathTLSFolder;
-	//vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> *vec_cloudTLS = new vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>();
-	//vector<string> fileNames;
-	//string extension = ".las";
-	//io.readFileNamesInFolder(pathTLSFolder, extension, fileNames);
-	/*for (int i = 0; i < fileNames.size(); ++i)
+	//读入地面站数据
+	/*string pathTLSFolder;
+	cout << "Please input the TLS data folder:" << endl;
+	cin >> pathTLSFolder;
+	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> *vec_cloudTLS = new vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>();
+	vector<string> fileNames;
+	string extension = ".las";
+	io.readFileNamesInFolder(pathTLSFolder, extension, fileNames);
+	for (int i = 0; i < fileNames.size(); ++i)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr curTLS(new pcl::PointCloud<pcl::PointXYZ>);
-		io.readLasFile(fileNames[i], curTLS);
+		io.readTLSNonground(fileNames[i], curTLS);
 		vec_cloudTLS->push_back(curTLS);
 	}*/
 	
 	/*-------2. 机载特征词典生成/读取------*/
 	//格网化->逐点生成单词->输出
 	//格网化-从机载点云中抽取生成词典的视角点	
-	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
-	ViewGeneration vg;
-	vg.getViewsFromALS_centroid(cloudALS, cloudALSViews, io.paralist.gridsizeALS);
-	io.OutputLas("viewpoints.las", cloudALSViews, centerALS, boundsALS);*/
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround(new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSNonground(new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
+	//ViewGeneration vg;
+	//vg.getALSGround(cloudALS, alsClass, cloudALSGround, cloudALSNonground);
+	//vg.getViewsFromALS_GroundSample(cloudALSGround, cloudALSViews, io.paralist.gridsizeALS);
+	//io.OutputLas("viewpoints.las", cloudALSViews, centerALS, boundsALS);
 
-	//逐点生成视角描述子
-	//ALSViewDescriptor avd;
-	//avd.setInputALS(cloudALS);
+	////逐点生成视角描述子
+	ALSViewDescriptor avd;
+	//avd.setInputALS(cloudALSNonground);
 	//avd.setViewPoints(cloudALSViews);
 	//avd.setHeightScannerCenter(1.5);
 	//avd.setMinDistance(io.paralist.minDist);
@@ -63,122 +72,286 @@ void main()
 	//avd.setSaveFolder("C:\\data\\ALS-TLS\\ALSDescriptors");
 
 	//avd.getViewDescriptorsByDefault();
-	////avd.outputALSViewDescriptors3DImage();
+	//avd.outputALSViewDescriptors3DImage();
 	//avd.outputALSViewDescriptors2DImage();
 
-	//读入视角点
+	//读入视角点，选取格网中心为视角点
 	Bounds boundsALSViews;
 	CenterPoint centerALSViews;
 	int ptNumALSViews;
 	string pathALSViews = io.paralist.pathALSViews; 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
-	io.readLasFile(pathALSViews, cloudALSViews);/**/
+	io.readLasFile(pathALSViews, cloudALSViews);
+	LOG(INFO) << "读取ALS视角点个数：" << cloudALSViews->points.size() << endl;
 
 	//读入2D词典
-	/*ALSViewDescriptor avd;
+	
+	//avd.ALSDescriptors = new vector<ViewDescriptor>();
+	//string pathALSDescriptors = io.paralist.pathALS2D; 
+	//vector<string> als2DImages;
+	//string alsExtension = ".png";
+	//io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als2DImages);
+	//io.sortFileNames(als2DImages);
+	//avd.read2DImagesAsDescriptors(als2DImages);/**/
+
+	//读入3D词典
+	//ALSViewDescriptor avd;
 	avd.ALSDescriptors = new vector<ViewDescriptor>();
-	string pathALSDescriptors = io.paralist.pathALS2D; 
-	vector<string> als2DImages;
-	string alsExtension = ".png";
-	io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als2DImages);
-	avd.read2DImagesAsDescriptors(als2DImages);*/
+	string pathALSDescriptors = io.paralist.pathALS3D;
+	vector<string> als3DImages;
+	string alsExtension = ".txt";
+	io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als3DImages);
+	io.sortFileNames(als3DImages);
+	avd.read3DImagesAsDescriptors(als3DImages);
+	for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
+	{
+		avd.ALSDescriptors->at(i).convert2DImage(200.0);
+	}
+
+	
 
 	//读入3D词典并转为2D--还有bug
-	ALSViewDescriptor avd;
+	/*ALSViewDescriptor avd;
 	avd.ALSDescriptors = new vector<ViewDescriptor>();
 	string pathALSDescriptors = io.paralist.pathALS2D;
 	vector<string> als3DImages;
 	string alsExtension = ".txt";
 	io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als3DImages);
 	avd.transfer3DImagesTo2DImagesAsDescriptors(als3DImages);
-	imwrite("test-transfer.png", avd.ALSDescriptors->at(0).depthimage);
+	imwrite("test-transfer.png", avd.ALSDescriptors->at(0).depthimage);*/
 
-	/*-------3. 地面站词典生成/读取------*/
+	/*-------3. 地面站词典生成/读取------*/	
+	TLSViewDescriptor tvd;
 	//逐站读入->生成单词->输出
-	/*TLSViewDescriptor tvd;
-	tvd.setInputTLS(vec_cloudTLS);
+	/*tvd.setInputTLS(vec_cloudTLS);
 	tvd.setMinDistance(io.paralist.minDist);
 	tvd.setResolutions(io.paralist.resolutionSkyDivision, io.paralist.resolutionSkyDivision);
-	tvd.setSaveFolder("C:\\data\\ALS-TLS\\TLSDescriptors");
+	tvd.setSaveFolder("C:\\data\\ALS-TLS\\TLSDescriptors");*/
 
-	tvd.getViewDescriptorsByDefault();
+	/*tvd.getViewDescriptorsByDefault();
 	tvd.outputTLSViewDescriptors3DImage();
 	tvd.outputTLSViewDescriptors2DImage();*/
 
-	//读入待匹配特征
-	TLSViewDescriptor tvd;
+	//读入3D待匹配特征	
 	tvd.TLSDescriptors = new vector<ViewDescriptor>();
-	string pathTLSDescriptors = io.paralist.pathTLS2D; 
-	vector<string> tls2DImages;
-	string tlsExtension = ".png";
-	io.readFileNamesInFolder(pathTLSDescriptors, tlsExtension, tls2DImages);
-	tvd.read2DImagesAsDescriptors(tls2DImages);
+	string pathTLSDescriptors = io.paralist.pathTLS3D; 
+	vector<string> tls3DImages;
+	string tlsExtension = ".txt";	
+	io.readFileNamesInFolder(pathTLSDescriptors, tlsExtension, tls3DImages);
+	io.sortFileNames(tls3DImages);
+	tvd.read3DImagesAsDescriptors(tls3DImages);/**/
+	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	{
+		//avd.ALSDescriptors->at(i).outputViewDescriptor3DImage(to_string(i) + "_beforefiltered.txt");
+		tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
+		tvd.TLSDescriptors->at(i).convert2DImage(200.0);
+		//avd.ALSDescriptors->at(i).outputViewDescriptor3DImage(to_string(i) + "_filtered.txt");
+		//avd.ALSDescriptors->at(i).convert2DImage(200.0f);
+		//imwrite(to_string(i) + "_filtered.png", avd.ALSDescriptors->at(i).depthimage);
+	}
+
+	
 
 	/*-------4. 地面站特征匹配------*/
 	//特征匹配->结果筛选
 	//按扫描仪裁切
-	//对每一地面站，从词典中进行特征匹配
-	vector<vector<SimilarityResult>> *similarity = new vector<vector<SimilarityResult>>();
+	//对每一地面站，从词典中进行特征匹配  
+	//vector<vector<PhaseSimilarityResult>> *similarity = new vector<vector<PhaseSimilarityResult>>();
 	SimilarityEstimation se;
+	//相位相关法，2D深度图不做处理
+	//ofstream ofs_PhaseCorre("All_PhaseCorre.txt");
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
-	//	Mat imageTLS; 
-	//	vector<SimilarityResult> curTLSSimilarity;
+	//	Mat imageTLS = tvd.TLSDescriptors->at(i).depthimage;
+	//	vector<PhaseSimilarityResult> curTLSSimilarity;
 	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
 	//	{
-	//		SimilarityResult tempSimilarity;
-	//		tempSimilarity.alsIndex = j;
-	//		Mat imageALS; 
+	//		PhaseSimilarityResult tempSimilarity;
+	//		Mat imageALS = avd.ALSDescriptors->at(j).depthimage;
 	//		se.phaseCorrelateOpenCV(imageTLS, imageALS, tempSimilarity.phase_shift, tempSimilarity.response);
+	//      tempSimilarity.alsIndex = j;
 	//		curTLSSimilarity.push_back(tempSimilarity);		
 	//	}
-	//	sort(curTLSSimilarity.begin(),curTLSSimilarity.end(), cmpSimilarityResult);	
+	//	sort(curTLSSimilarity.begin(),curTLSSimilarity.end());	
+	//	for (int k = 0; k < 1; ++k)
+	//	{
+	//		ofs_PhaseCorre << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs_PhaseCorre << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
 	//	//输出前50
 	//	string saveName;
-	//	saveName = "SimilarityResult" + to_string(i) +".txt";
+	//	saveName = "SimilarityResult_PhaseCorre" + to_string(i) +".txt";
 	//	ofstream ofs(saveName.c_str());
 	//	//ofs << "*******************TLS index：" << i << "*************************" << endl;
-	//	for (int k = 0; k < 50; ++k)
+	//	for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
 	//	{			
-	//		ofs << cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
-	//		ofs << curTLSSimilarity[k].alsIndex << " " << curTLSSimilarity[k].response << " "
+	//		ofs << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " " 
 	//		    << curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
 	//	}
-	//	similarity->push_back(curTLSSimilarity);
+	//	//similarity->push_back(curTLSSimilarity);
 	//	ofs.close();
 	//}
-	//
+	//ofs_PhaseCorre.close();
 
+	////相位相关法，2D图像裁剪去除孤立点
+	//ofstream ofs_CutMidFilt("All_CutMidFilt.txt");
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
 	//	Mat imageTLS; 
 	//	se.PreProcessByOpenCV(tvd.TLSDescriptors->at(i).depthimage,imageTLS)	;
-	//	imwrite("CutMidFilt"+to_string(i)+".png",imageTLS);
-	//	vector<SimilarityResult> curTLSSimilarity;
+	//	//imwrite("CutMidFilt"+to_string(i)+".png",imageTLS);
+	//	vector<PhaseSimilarityResult> curTLSSimilarity;
 	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
 	//	{
-	//		SimilarityResult tempSimilarity;
-	//		tempSimilarity.alsIndex = j;
+	//		PhaseSimilarityResult tempSimilarity;		
 	//		Mat imageALS; 
 	//		se.PreProcessByOpenCV(avd.ALSDescriptors->at(j).depthimage, imageALS);
 	//		se.phaseCorrelateOpenCV(imageTLS, imageALS, tempSimilarity.phase_shift, tempSimilarity.response);
+	//      tempSimilarity.alsIndex = j;
 	//		curTLSSimilarity.push_back(tempSimilarity);		
 	//	}
-	//	sort(curTLSSimilarity.begin(), curTLSSimilarity.end(), SimilarityEstimation::cmpSimilarityResult);
+	//	sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+	//	for (int k = 0; k < 1; ++k)
+	//	{
+	//		ofs_CutMidFilt << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs_CutMidFilt << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
 	//	//输出前50
 	//	string saveName;
 	//	saveName = "SimilarityResult_CutMidFilt" + to_string(i) +".txt";
 	//	ofstream ofs(saveName.c_str());
 	//	//ofs << "*******************TLS index：" << i << "*************************" << endl;
-	//	for (int k = 0; k < 50; ++k)
+	//	for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
 	//	{			
-	//		ofs << cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
-	//		ofs << curTLSSimilarity[k].alsIndex << " " << curTLSSimilarity[k].response << " "
+	//		ofs << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " " 
 	//		    << curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
 	//	}
-	//	similarity->push_back(curTLSSimilarity);
+	//	//similarity->push_back(curTLSSimilarity);
 	//	ofs.close();
 	//}
+	//ofs_CutMidFilt.close();
+
+	////按占据状态估计相似性
+	//ofstream ofs_OccupationResult("All_Occupation.txt");
+	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	//{
+	//	vector<PhaseSimilarityResult> curTLSSimilarity;
+	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+	//	{
+	//		PhaseSimilarityResult tempSimilarity;
+	//		se.similarityByOccupation(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+	//		tempSimilarity.alsIndex = j;
+	//		curTLSSimilarity.push_back(tempSimilarity);
+	//	}
+	//	sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+	//	LOG(INFO) << "计算第" << i << "站相似性估计，最大相似度为" << curTLSSimilarity[0].response << endl;
+	//	//输出前50
+	//	string saveName;
+	//	saveName = "SimilarityResult_Occupation" + to_string(i) + ".txt";
+	//	
+	//	for (int k = 0; k < 1; ++k)
+	//	{
+	//		ofs_OccupationResult << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs_OccupationResult << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	ofstream ofs(saveName.c_str());
+	//	
+	//	//ofs << "*******************TLS index：" << i << "*************************" << endl;
+	//	for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+	//	{
+	//		ofs << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	//similarity->push_back(curTLSSimilarity);
+	//	ofs.close();
+	//}
+	//ofs_OccupationResult.close();
+	//
+	////按天际线估计相似性
+	//ofstream ofs_SkylineResult("All_Skyline.txt");
+	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	//{
+	//	vector<PhaseSimilarityResult> curTLSSimilarity;
+	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+	//	{
+	//		PhaseSimilarityResult tempSimilarity;
+	//		se.similarityBySkyLine(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+	//		tempSimilarity.alsIndex = j;
+	//		curTLSSimilarity.push_back(tempSimilarity);
+	//	}
+	//	sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+	//	for (int k = 0; k < 1; ++k)
+	//	{
+	//		ofs_SkylineResult << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs_SkylineResult << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	//输出前50
+	//	string saveName;
+	//	saveName = "SimilarityResult_Skyline" + to_string(i) + ".txt";
+	//	ofstream ofs(saveName.c_str());
+	//	//ofs << "*******************TLS index：" << i << "*************************" << endl;
+	//	for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+	//	{
+	//		ofs << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	//similarity->push_back(curTLSSimilarity);
+	//	ofs.close();
+	//}
+	//ofs_SkylineResult.close();
+
+	//按天际线+深度估计相似性
+	ofstream ofs_SkylineAndDepth("All_SkylineAndDepth.txt");
+	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	{
+		vector<PhaseSimilarityResult> curTLSSimilarity;
+		for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+		{
+			PhaseSimilarityResult tempSimilarity;
+			se.similarityBySkyLineAndDepth(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+			tempSimilarity.alsIndex = j;
+			curTLSSimilarity.push_back(tempSimilarity);
+		}
+		sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+		for (int k = 0; k < 1; ++k)
+		{
+			ofs_SkylineAndDepth << fixed << setprecision(3)
+				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+			ofs_SkylineAndDepth << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+		}
+		//输出前50
+		string saveName;
+		saveName = "SimilarityResult_SkylineAndDepth" + to_string(i) + ".txt";
+		ofstream ofs(saveName.c_str());
+		//ofs << "*******************TLS index：" << i << "*************************" << endl;
+		for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+		{
+			ofs << fixed << setprecision(3)
+				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+			ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+		}
+		//similarity->push_back(curTLSSimilarity);
+		ofs.close();
+	}
+	ofs_SkylineAndDepth.close();
 
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
@@ -211,36 +384,36 @@ void main()
 	//	ofs.close();
 	//}
 
-	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
-	{
-		/*Mat imageTLS;
-		se.PreProcessByOpenCV(tvd.TLSDescriptors->at(i).depthimage, imageTLS);*/
-		vector<SimilarityResult> curTLSSimilarity;
-		for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
-		{
-			SimilarityResult tempSimilarity;
-			/*Mat imageALS;
-			se.PreProcessByOpenCV(avd.ALSDescriptors->at(j).depthimage, imageALS);
-			imwrite("CutMidFilt_ALS_" + to_string(j) + ".png", imageALS);*/
-			se.similarityBySkyLine(tvd.TLSDescriptors->at(i).depthimage, avd.ALSDescriptors->at(j).depthimage, tempSimilarity);
-			tempSimilarity.alsIndex = j;
-			curTLSSimilarity.push_back(tempSimilarity);
-		}
-		std::sort(curTLSSimilarity.begin(), curTLSSimilarity.end()/*, se.cmpSimilarityResult*/);
-		//输出前50
-		string saveName;
-		saveName = "SimilarityResult_bySkyline" + to_string(i) + ".txt";
-		ofstream ofs(saveName.c_str());
-		//ofs << "*******************TLS index：" << i << "*************************" << endl;
-		for (int k = 0; k < 50; ++k)
-		{
-			ofs << cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
-			ofs << curTLSSimilarity[k].alsIndex << " " << curTLSSimilarity[k].response << " "
-				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
-		}
-		similarity->push_back(curTLSSimilarity);
-		ofs.close();
-	}
+	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	//{
+	//	/*Mat imageTLS;
+	//	se.PreProcessByOpenCV(tvd.TLSDescriptors->at(i).depthimage, imageTLS);*/
+	//	vector<SimilarityResult> curTLSSimilarity;
+	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+	//	{
+	//		SimilarityResult tempSimilarity;
+	//		/*Mat imageALS;
+	//		se.PreProcessByOpenCV(avd.ALSDescriptors->at(j).depthimage, imageALS);
+	//		imwrite("CutMidFilt_ALS_" + to_string(j) + ".png", imageALS);*/
+	//		se.similarityBySkyLine(tvd.TLSDescriptors->at(i).depthimage, avd.ALSDescriptors->at(j).depthimage, tempSimilarity);
+	//		tempSimilarity.alsIndex = j;
+	//		curTLSSimilarity.push_back(tempSimilarity);
+	//	}
+	//	std::sort(curTLSSimilarity.begin(), curTLSSimilarity.end()/*, se.cmpSimilarityResult*/);
+	//	//输出前50
+	//	string saveName;
+	//	saveName = "SimilarityResult_bySkyline" + to_string(i) + ".txt";
+	//	ofstream ofs(saveName.c_str());
+	//	//ofs << "*******************TLS index：" << i << "*************************" << endl;
+	//	for (int k = 0; k < 50; ++k)
+	//	{
+	//		ofs << cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].alsIndex << " " << curTLSSimilarity[k].response << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	similarity->push_back(curTLSSimilarity);
+	//	ofs.close();
+	//}
 	
 
 	//对前N相似聚类，去除离群点，确定同名特征

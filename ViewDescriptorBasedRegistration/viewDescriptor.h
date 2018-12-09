@@ -32,10 +32,11 @@ public:
 
 	float getSVFValue(){ return svf; };
 	void convert2DImage();
-	void convert2DImage(float &maxDist2Grey);
+	void convert2DImage(float maxDist2Grey);
 	void outputViewDescriptor3DImage(const string &filename);
 	void outputViewDescriptor2DImage(const string &filename);
 	
+	void filterNoiseBy2DDensity(int radius, int minNum);
 
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;

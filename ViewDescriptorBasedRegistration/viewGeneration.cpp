@@ -34,6 +34,26 @@ void ViewGeneration::getCloudBound(const pcl::PointCloud<pcl::PointXYZ> &cloud, 
 	bound.max_z = max_z;
 }
 
+bool ViewGeneration::getALSGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS, vector<short> *propsClassification, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSNonground)
+{
+	if (cloudALS->points.size()!=propsClassification->size())
+	{
+		cout << "点个数与类别标记个数不一致！" << endl;
+		return false;
+	}
+	for (int i = 0; i < propsClassification->size(); ++i)
+	{
+		if (propsClassification->at(i)==2)
+		{
+			cloudALSGround->push_back(cloudALS->points[i]);
+		}
+		else
+		{
+			cloudALSNonground->push_back(cloudALS->points[i]);
+		}
+	}
+}
+
 bool ViewGeneration::getViewsFromALS_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudViews, float resolution)
 {
 	//选取每列体素中最低的点
@@ -74,6 +94,61 @@ bool ViewGeneration::getViewsFromALS_centroid(pcl::PointCloud<pcl::PointXYZ>::Pt
 				pt.y = bound.min_y + (j - 0.5)*resolution;
 				pt.z = cloudALS->points[gridIndex[count]].z;				
 				cloudViews->push_back(pt);
+			}
+		}
+	}
+	return 1;
+}
+
+float getPointDist2D(pcl::PointXYZ &p1, pcl::PointXYZ &p2)
+{
+	return sqrt(p1.x*p1.x + p1.y*p1.y);
+}
+
+bool ViewGeneration::getViewsFromALS_GroundSample(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudViews, float resolution)
+{
+	//选取每列体素中离格网中心最近的点
+	Bounds bound;
+	getCloudBound(*cloudALS, bound);
+	int nx = ceil((bound.max_x - bound.min_x) / resolution);
+	int ny = ceil((bound.max_y - bound.min_y) / resolution);
+	vector<int> gridIndex;
+	gridIndex.resize(nx*ny, -1);
+	vector<float> gridNearestPointDist;
+	gridNearestPointDist.resize(nx*ny, resolution);
+
+	//对其分类;
+	for (int i = 0; i < cloudALS->points.size(); i++)
+	{
+		int tx = floor((cloudALS->points[i].x - bound.min_x) / resolution);
+		int ty = floor((cloudALS->points[i].y - bound.min_y) / resolution);
+		int count = tx + ty*nx;
+
+		if (gridIndex[count] == -1)
+			gridIndex[count] = i;
+		else
+		{
+			pcl::PointXYZ pt_center;
+			pt_center.x = bound.min_x + (tx - 0.5)*resolution;
+			pt_center.y = bound.min_y + (ty - 0.5)*resolution;
+			pt_center.z = 0.0;
+			float curDist = getPointDist2D(cloudALS->points[count],pt_center);
+			if (curDist < gridNearestPointDist[count])
+			{
+				gridIndex[count] = i;
+				gridNearestPointDist[count] = curDist;
+			}
+		}
+	}
+
+	for (int i = 0; i < nx; ++i)
+	{
+		for (int j = 0; j < ny; ++j)
+		{
+			int count = i + j*nx;
+			if (gridIndex[count] != -1)
+			{
+				cloudViews->push_back(cloudALS->points[gridIndex[count]]);
 			}
 		}
 	}

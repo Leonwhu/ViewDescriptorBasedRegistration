@@ -23,9 +23,9 @@
 
 int SimilarityEstimation::PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/)
 {
-	//截取高度角在30-130度之间
+	//截取高度角在20-120度之间
 	float resolution = 4.0;
-	float rangeMin = 20.0; float rangeMax = 140.0;
+	float rangeMin = 20.0; float rangeMax = 120.0;
 	int cutRow = int(rangeMin / resolution);
 	int recRow = int((rangeMax-rangeMin)/resolution);
 	dst = src(Rect(0, cutRow, src.cols, recRow));
@@ -86,26 +86,36 @@ bool SimilarityEstimation::phaseCorrelateOpenCV(Mat &src1, Mat &src2, Point2d &p
 	return true;
 }
 
-//计算每个偏移下的相似性，都为空或都不为空则相似性加一
-bool SimilarityEstimation::similarityByOccupation(Mat &src1, Mat &src2, SimilarityResult &sr)
+//计算每个偏移下的相似性，都为空(-1.0)或都不为空(>0.0)则相似性加一
+bool SimilarityEstimation::similarityByOccupation(ViewDescriptor &src1, ViewDescriptor &src2, PhaseSimilarityResult &sr)
 {
-	vector<SimilarityResult> res;
-	for (int deltaCol = 0; deltaCol < src1.cols; ++deltaCol)
+	if (src1.Nh != src2.Nh || src1.Nv != src2.Nv || src1.Nh == 0 || src1.Nv == 0)
 	{
-		SimilarityResult tempSR;
+		cout << "计算相似性的两特征维度不一致！" << endl;
+		return false;
+	}
+	if (src1.viewDepth.empty() || src2.viewDepth.empty())
+	{
+		cout << "计算相似性的两特征深度值未初始化！" << endl;
+		return false;
+	}
+	vector<PhaseSimilarityResult> res;
+	for (int deltaCol = 0; deltaCol < src1.Nh; ++deltaCol)
+	{
+		PhaseSimilarityResult tempSR;
 		int numSame = 0;
-		for (int i = 0; i < src1.rows; ++i)
+		for (int i = 0; i <= src1.Nv/2; ++i)
 		{
-			for (int j = 0; j < src1.cols; ++j)
+			for (int j = 0; j < src1.Nh; ++j)
 			{
-				int deltaJ = j + deltaCol < src1.cols ? j + deltaCol : j + deltaCol - src1.cols;
-				if (src1.at<uchar>(i, j) == 255 && src2.at<uchar>(i, deltaJ) == 255)
-					numSame++;
-				if (src1.at<uchar>(i, j) != 255 && src2.at<uchar>(i, deltaJ) != 255)
+				int deltaJ = j + deltaCol < src1.Nh ? j + deltaCol : j + deltaCol - src1.Nh;
+				int index1 = j + i * src1.Nh;
+				int index2 = deltaJ + i * src1.Nh;
+				if (src1.viewDepth[index1] * src2.viewDepth[index2] > 0.0)
 					numSame++;
 			}
 		}
-		tempSR.response = double(numSame) / (src1.rows*src1.cols);
+		tempSR.response = double(numSame) / (src1.Nh*src1.Nv/2);
 		tempSR.phase_shift.x = deltaCol;
 		tempSR.phase_shift.y = 0;
 		res.push_back(tempSR);
@@ -115,13 +125,13 @@ bool SimilarityEstimation::similarityByOccupation(Mat &src1, Mat &src2, Similari
 	return 1;
 }
 
-//计算每个偏移下的相似性，以最高遮挡角判断相似个数，输入应该是未切割过的图像（45*90）
-bool SimilarityEstimation::similarityBySkyLine(Mat &src1, Mat &src2, SimilarityResult &sr)
+//计算每个偏移下的相似性，以最高遮挡角判断相似个数，输入应该是未切割过的图像（45*90），输入的TLS特征应预先去噪
+bool SimilarityEstimation::similarityBySkyLine(Mat &src1, Mat &src2, PhaseSimilarityResult &sr)
 {
-	vector<SimilarityResult> res;
+	vector<PhaseSimilarityResult> res;
 	for (int deltaCol = 0; deltaCol < src1.cols; ++deltaCol)
 	{
-		SimilarityResult tempSR;
+		PhaseSimilarityResult tempSR;
 		int numSame = 0;
 		int maxAngle1 = 0, maxAngle2 = 0;
 		cvtColor(src1, src1, CV_8UC1);
@@ -146,6 +156,129 @@ bool SimilarityEstimation::similarityBySkyLine(Mat &src1, Mat &src2, SimilarityR
 		}
 		
 		tempSR.response = double(2*numSame) / (src1.rows*src1.cols);
+		tempSR.phase_shift.x = deltaCol;
+		tempSR.phase_shift.y = 0;
+		res.push_back(tempSR);
+	}
+	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
+	sr = res[0];
+	return 1;
+}
+
+bool SimilarityEstimation::similarityBySkyLine(ViewDescriptor &src1, ViewDescriptor &src2, PhaseSimilarityResult &sr)
+{
+	if (src1.Nh != src2.Nh || src1.Nv != src2.Nv)
+	{
+		cout << "计算相似性的两特征维度不一致！" << endl;
+		return false;
+	}
+	if (src1.viewDepth.empty() || src2.viewDepth.empty())
+	{
+		cout << "计算相似性的两特征深度值未初始化！" << endl;
+		return false;
+	}
+	vector<PhaseSimilarityResult> res;
+	for (int deltaCol = 0; deltaCol < src1.Nh; ++deltaCol)
+	{
+		PhaseSimilarityResult tempSR;
+		int numSame = 0;
+		int maxAngle1 = 0, maxAngle2 = 0;
+		for (int j = 0; j < src1.Nh; ++j)
+		{
+
+			for (int i = 0; i < src1.Nv; ++i)
+			{
+				if (src1.viewDepth[j + i*src1.Nh] > 0.0)
+				{
+					maxAngle1 = i;
+					break;
+				}
+					
+			}
+			for (int i = 0; i < src1.Nv; ++i)
+			{
+				int deltaJ = j + deltaCol < src1.Nh ? j + deltaCol : j + deltaCol - src1.Nh;
+				if (src2.viewDepth[deltaJ + i*src2.Nh] > 0.0)
+				{
+					maxAngle2 = i;
+					break;
+				}				
+			}
+			if (maxAngle1 > src1.Nv / 2) maxAngle1 = src1.Nv / 2;
+			if (maxAngle2 > src1.Nv / 2) maxAngle2 = src1.Nv / 2;
+
+			numSame += src1.Nv / 2 - abs(maxAngle1 - maxAngle2);
+		}
+
+		tempSR.response = double(2 * numSame) / (src1.Nh*src1.Nv);
+		tempSR.phase_shift.x = deltaCol;
+		tempSR.phase_shift.y = 0;
+		res.push_back(tempSR);
+	}
+	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
+	sr = res[0];
+	return 1;
+}
+
+bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, ViewDescriptor &src2, PhaseSimilarityResult &sr)
+{
+	if (src1.Nh != src2.Nh || src1.Nv != src2.Nv)
+	{
+		cout << "计算相似性的两特征维度不一致！" << endl;
+		return false;
+	}
+	if (src1.viewDepth.empty() || src2.viewDepth.empty())
+	{
+		cout << "计算相似性的两特征深度值未初始化！" << endl;
+		return false;
+	}
+
+	//考虑的天空高度角的最小差
+	int minSkyDiff = 3;
+	float rDepth = 5.0;
+
+	vector<PhaseSimilarityResult> res;
+	for (int deltaCol = 0; deltaCol < src1.Nh; ++deltaCol)
+	{
+		PhaseSimilarityResult tempSR;
+		float numSame = 0.0, gridSimilarity = 0.0, depthSimilarity = 0.0;
+		int maxAngle1 = 0, maxAngle2 = 0;
+		for (int j = 0; j < src1.Nh; ++j)
+		{
+			int deltaJ = j + deltaCol < src1.Nh ? j + deltaCol : j + deltaCol - src1.Nh;
+			for (int i = 0; i < src1.Nv; ++i)
+			{
+				if (src1.viewDepth[j + i*src1.Nh] > 0.0)
+				{
+					maxAngle1 = i;
+					break;
+				}
+
+			}
+			for (int i = 0; i < src1.Nv; ++i)
+			{				
+				if (src2.viewDepth[deltaJ + i*src2.Nh] > 0.0)
+				{
+					maxAngle2 = i;
+					break;
+				}
+			}
+			if (maxAngle1 > src1.Nv / 2) maxAngle1 = src1.Nv / 2;
+			if (maxAngle2 > src1.Nv / 2) maxAngle2 = src1.Nv / 2;
+
+			//判断是否在
+			int gridD = abs(maxAngle1 - maxAngle2);
+			if (gridD <= minSkyDiff)
+			{
+				float depthD = (src1.viewDepth[j + maxAngle1*src1.Nh] - src2.viewDepth[deltaJ + maxAngle2*src2.Nh]);
+				gridSimilarity = exp(0.0 - float(gridD*gridD) / minSkyDiff/minSkyDiff);
+				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);;
+				numSame += gridSimilarity*depthSimilarity;
+			}
+			
+		}
+
+		tempSR.response = double(2 * numSame) / (src1.Nh*src1.Nv);
 		tempSR.phase_shift.x = deltaCol;
 		tempSR.phase_shift.y = 0;
 		res.push_back(tempSR);

@@ -89,6 +89,36 @@ void ALSViewDescriptor::read2DImagesAsDescriptors(vector<string> &fileNames)
 	}	
 }
 
+void ALSViewDescriptor::read3DImagesAsDescriptors(vector<string> &fileNames)
+{
+	this->ALSDescriptors->swap(vector<ViewDescriptor>());
+	for (int i = 0; i < fileNames.size()/*1000*/; ++i)
+	{
+		ViewDescriptor tempvd;
+		tempvd.Nh = 90;
+		tempvd.Nv = 45;
+		tempvd.minDist = 3.0;
+		tempvd.viewDepth.resize(tempvd.Nh*tempvd.Nv, -1.0);
+		ifstream ifs(fileNames[i]);
+		string tempLine;
+		while (!ifs.eof())
+		{
+			getline(ifs, tempLine);
+			if (tempLine != "")
+			{
+				int tempv, temph;
+				float tempDepth;
+				stringstream ss;
+				ss << tempLine;
+				ss >> temph >> tempv >> tempDepth;
+				tempvd.viewDepth[(tempvd.Nv - tempv) * tempvd.Nh + temph] = tempDepth;
+			}
+		}
+		this->ALSDescriptors->push_back(tempvd);
+	}
+	LOG(INFO) << "读取ALS的3D描述子点个数：" << this->ALSDescriptors->size() << endl;
+}
+
 void ALSViewDescriptor::transfer3DImagesTo2DImagesAsDescriptors(vector<string> &fileNames)
 {
 	this->ALSDescriptors->swap(vector<ViewDescriptor>());

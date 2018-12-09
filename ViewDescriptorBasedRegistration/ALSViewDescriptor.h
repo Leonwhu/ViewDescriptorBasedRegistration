@@ -20,6 +20,8 @@ public:
 	void outputDictionaryBinary(const char* p_path);
 
 	void read2DImagesAsDescriptors(vector<string> &fileNames);
+	void read3DImagesAsDescriptors(vector<string> &fileNames);
+
 	void transfer3DImagesTo2DImagesAsDescriptors(vector<string> &fileNames);
 
 	vector<ViewDescriptor> *ALSDescriptors;

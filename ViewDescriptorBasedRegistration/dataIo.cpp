@@ -223,6 +223,42 @@ bool DataIo::readLasFile(const std::string &fileName, pcl::PointCloud<pcl::Point
 		//pt.intensity = p.GetIntensity();
 		pointCloud->points.push_back(pt);
 	}
+	
+	return 1;
+}
+
+bool DataIo::readTLSNonground(const std::string &fileName, pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
+{
+	if (fileName.substr(fileName.rfind('.')).compare(".las"))
+	{
+		return 0;
+	}
+
+	std::ifstream ifs;
+	ifs.open(fileName, std::ios::in | std::ios::binary);
+	if (ifs.bad())
+	{
+		cout << "未发现匹配项" << endl;
+	}
+	liblas::ReaderFactory f;
+	liblas::Reader reader = f.CreateWithStream(ifs);
+
+	/*while循环中遍历所有的点;*/
+	while (reader.ReadNextPoint())
+	{
+		const liblas::Point& p = reader.GetPoint();
+		if (p.GetColor().GetGreen() != 255)
+		{
+			continue;
+		}
+		pcl::PointXYZ  pt;
+
+		pt.x = p.GetX();
+		pt.y = p.GetY();
+		pt.z = p.GetZ();
+		//pt.intensity = p.GetIntensity();
+		pointCloud->points.push_back(pt);
+	}
 
 	return 1;
 }
@@ -310,6 +346,59 @@ void  DataIo::readLasData(const string &filename, pcl::PointCloud<pcl::PointXYZ>
 	cout << "----Finish reading! " << endl;*/
 }
 
+void  DataIo::readLasData(const string &filename, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz, Bounds& bounds, CenterPoint& center_point, int &pt_num, vector<short> *propsClassification)
+{
+	if (!filename.substr(filename.rfind('.')).compare(".las"))
+	{
+		std::ifstream ifs;
+		ifs.open(filename, std::ios::in | std::ios::binary);
+		if (ifs.bad())
+		{
+			cout << "未发现匹配项" << endl;
+		}
+		liblas::ReaderFactory f;
+		liblas::Reader reader = f.CreateWithStream(ifs);
+
+		const liblas::Header& header = reader.GetHeader();
+		pt_num = header.GetPointRecordsCount();//给点个数赋值;
+		/*给最大，最小坐标值赋值;*/
+		bounds.min_x = header.GetMinX();  bounds.max_x = header.GetMaxX();
+		bounds.min_y = header.GetMinY();  bounds.max_y = header.GetMaxY();
+		bounds.min_z = header.GetMinZ();  bounds.max_z = header.GetMaxZ();
+		/*给重心坐标赋值;*/
+		center_point.x = (header.GetMinX() + header.GetMaxX()) / 2.0;
+		center_point.y = (header.GetMinY() + header.GetMaxY()) / 2.0;
+		center_point.z = (header.GetMinZ() + header.GetMaxZ()) / 2.0;
+
+		liblas::PointFormatName format = header.GetDataFormatId();//获得点的格式类型,数据类型0和1没有颜色值，其他数据类型有颜色值;
+		bool has_color = false;
+		if (liblas::ePointFormat0 == format || liblas::ePointFormat1 == format)
+			has_color = false;
+		else
+			has_color = true;
+		int i = 0;
+		/*while循环中遍历所有的点;*/
+		int num = 0;
+		while (reader.ReadNextPoint())
+		{
+			const liblas::Point& p = reader.GetPoint();
+			pcl::PointXYZ  las_point;
+
+			/*将重心化后的坐标和强度值赋值给PCL中的点;*/
+			las_point.x = p.GetX() - center_point.x;
+			las_point.y = p.GetY() - center_point.y;
+			las_point.z = p.GetZ() - center_point.z;
+			
+			cloud_xyz->push_back(las_point);//将点压入pointcloud中;
+
+			short t = p.GetClassification().GetClass();
+			propsClassification->push_back(t);
+			num++;
+		}
+	}
+	/*cout << "    点个数：" << cloud_xyz->size() << endl;
+	cout << "----Finish reading! " << endl;*/
+}
 
 bool DataIo::readPcdFile(const std::string &fileName, pcl::PointCloud<pcl::PointXYZI> &pointCloud)
 {
@@ -446,7 +535,9 @@ void DataIo::readParalist(string paralistfile)
 	infile >> paralist.heightScanner;
 	infile >> paralist.pathALSViews;
 	infile >> paralist.pathALS2D;
+	infile >> paralist.pathALS3D;
 	infile >> paralist.pathTLS2D;
+	infile >> paralist.pathTLS3D;
 	/*infile >> paralist.pview.x;
 	infile >> paralist.pview.y;
 	infile >> paralist.pview.z;*/
@@ -491,5 +582,61 @@ void DataIo::OutputLas(string file_name, pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 		}
 		ofs.flush();
 		ofs.close();
+	}
+}
+
+bool DataIo::readLasWithClassification(const string &fileName, pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud, vector<short> *propsClassification)
+{
+	if (fileName.substr(fileName.rfind('.')).compare(".las"))
+	{
+		return 0;
+	}
+
+	std::ifstream ifs;
+	ifs.open(fileName, std::ios::in | std::ios::binary);
+	if (ifs.bad())
+	{
+		cout << "未发现匹配项" << endl;
+	}
+	liblas::ReaderFactory f;
+	liblas::Reader reader = f.CreateWithStream(ifs);
+
+	/*while循环中遍历所有的点;*/
+	while (reader.ReadNextPoint())
+	{
+		const liblas::Point& p = reader.GetPoint();
+		pcl::PointXYZ  pt;
+
+		pt.x = p.GetX();
+		pt.y = p.GetY();
+		pt.z = p.GetZ();
+		//pt.intensity = p.GetIntensity();		
+		pointCloud->points.push_back(pt);
+
+		short t = p.GetClassification().GetClass();
+		propsClassification->push_back(t);
+
+	}
+
+	return 1;
+}
+bool cmp1(pair<int, string>a, pair<int, string>b)
+{
+	return a.first < b.first;
+}
+void DataIo::sortFileNames(vector<string> &fileNames)
+{
+	vector<pair<int, string>> vec;
+	for (int i = 0; i < fileNames.size(); ++i)
+	{
+		string strIndex;
+		strIndex = fileNames[i].substr(fileNames[i].find_last_of("\\")+1);
+		strIndex = strIndex.substr(0,strIndex.find("_"));
+		vec.push_back({stoi(strIndex),fileNames[i]});
+	}
+	sort(vec.begin(), vec.end(), cmp1);
+	for (int i = 0; i < fileNames.size(); ++i)
+	{
+		fileNames[i] = vec[i].second;
 	}
 }

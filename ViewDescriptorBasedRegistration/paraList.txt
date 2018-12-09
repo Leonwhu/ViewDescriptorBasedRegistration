@@ -2,10 +2,11 @@
 4.0
 3.0
 1.5
-C:\data\ALS-TLS\test-65000-65100-viewpoints.las
-C:\data\ALS-TLS\ALS_3D_65000_65100
-C:\data\ALS-TLS\test-TLS_2D
-
+C:\data\ALS-TLS\viewpoints.las
+C:\data\ALS-TLS\ALSDescriptors_ALS_2DImages
+C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
+C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
+C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
 
 //Notification
 1  resolution of ALS grid
@@ -15,3 +16,4 @@ C:\data\ALS-TLS\test-TLS_2D
 5  path ALS viewpoints
 6  path ALS 2D image/3D image
 7  path TLS 2D image
+C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
