@@ -21,12 +21,15 @@ public:
 	void setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud){ cloud = input_cloud; };
 	void setViewPoint(pcl::PointXYZ viewpt){ viewPoint = viewpt; };
 	void setMinDist(float minDistance){ minDist = minDistance; };
+	void setMaxDist(float maxDistance){ maxDist = maxDistance; };
 	//void setDescriptor(vector<float> *descriptor){ descriptor = descriptor; };
 	void setResolutions(float angularResolutionV, float angularResolutionH){
 		angResV = angularResolutionV; angResH = angularResolutionH; Nv = int(180.0 / angResV); Nh = int(360.0 / angResH); 
 	};
+	void setNvNh(int Nvertical, int Nhorizontal){ Nv = Nvertical; Nh = Nhorizontal; };
 	
 	bool generateDescriptor();
+	bool generateDescriptorByKDTree(std::vector<int> &pointIdxRadiusSearch);
 	void calculateSVFValue();
 	void calculateSVFValue2DImage();
 
@@ -46,6 +49,7 @@ public:
 	float angResV;
 	float angResH;
 	float minDist;
+	float maxDist;
 	int Nv;
 	int Nh;
 	float svf=0.0;

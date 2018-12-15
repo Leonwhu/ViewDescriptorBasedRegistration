@@ -9,11 +9,13 @@ public:
 	void setViewPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr view_Points){ viewPoints = view_Points; };
 	void setHeightScannerCenter(float height){ heightScannerCenter = height; };
 	void setMinDistance(float minDistance){ minDist = minDistance; };
+	void setMaxDistance(float maxDistance){ maxDist = maxDistance; };
 	void setSaveFolder(const string &filename){ saveFolderPrefix = filename; };
 	void setResolutions(float angularResolutionV, float angularResolutionH){
 		angResV = angularResolutionV; angResH = angularResolutionH; Nv = int(180.0 / angResV); Nh = int(360.0 / angResH);
 	};
 	void getViewDescriptorsByDefault();
+	void getViewDescriptorsByKDTree();
 
 	void outputALSViewDescriptors3DImage();
 	void outputALSViewDescriptors2DImage();
@@ -34,6 +36,7 @@ private:
 	float angResV;
 	float angResH;
 	float minDist;
+	float maxDist;
 	int Nv;
 	int Nh;
 };

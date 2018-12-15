@@ -13,6 +13,7 @@ void TLSViewDescriptor::getViewDescriptorsByDefault()
 		vd.setInputCloud(this->cloudTLS->at(i));
 		vd.setResolutions(this->angResV, this->angResH);
 		vd.setMinDist(this->minDist);
+		vd.setMaxDist(this->maxDist);
 		vd.generateDescriptor();
 		TLSDescriptors->push_back(vd);
 		if (i % 1000 == 0)

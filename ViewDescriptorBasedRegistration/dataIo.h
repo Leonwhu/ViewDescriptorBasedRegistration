@@ -19,15 +19,26 @@ using namespace utility;
 
 struct Paralist{
 
-	float gridsizeALS;
-	float resolutionSkyDivision;
-	float minDist;
-	float heightScanner;
-	string pathALSViews;
-	string pathALS2D;
-	string pathALS3D;
-	string pathTLS2D;
-	string pathTLS3D;
+	float gridsizeALS;                //resolution of ALS grid
+	float resolutionSkyDivision;      //resolution of sky division
+	float minDist;                    //min valid distance of TLS
+	float maxDist;                    //max valid distance of TLS
+	float minAngle;                   //min scanning angle of TLS (zenith)
+	float maxAngle;                   //max scanning angle of TLS (zenith)
+	float heightScanner;              //height of scanner
+
+	//…˙≥…¥ µ‰
+	string pathALSPointCloud;              //path of ALS point cloud
+	string saveALSFolderPre;          //path to save ALS view descriptors
+
+	//∂¡»Î¥ µ‰
+	string pathALSViews;              //path of ALS viewpoints
+	string pathALS2D;                 //path of ALS 2D image
+	string pathALS3D;                 //path of ALS 3D image
+	string pathTLS2D;                 //path of TLS 2D image
+	string pathTLS3D;                 //path of TLS 3D image
+	int Nv; 
+	int Nh;
 	//pcl::PointXYZ pview;
 
 	/*float num_point_bb;

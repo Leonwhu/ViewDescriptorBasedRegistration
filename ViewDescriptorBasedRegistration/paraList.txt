@@ -1,19 +1,34 @@
 1.0
 4.0
 3.0
+100.0
+20.0
+120.0
 1.5
-C:\data\ALS-TLS\viewpoints.las
+C:\data\lqs-whole\lqs-ALS-Whole-StripMergeFilteredresult.las
+C:\data\lqs-whole\ALSDescriptors
+C:\data\ALS-TLS\ALS-Whole-Viewpoints.las
 C:\data\ALS-TLS\ALSDescriptors_ALS_2DImages
 C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
 
 //Notification
-1  resolution of ALS grid
-2  resolution of sky division
-3  min valid distance of TLS scanner
-4  height of scanner
-5  path ALS viewpoints
-6  path ALS 2D image/3D image
-7  path TLS 2D image
+1   resolution of ALS grid
+2   resolution of sky division
+3   min valid distance of TLS
+4   max valid distance of TLS
+5   min scanning angle of TLS (zenith)
+6   max scanning angle of TLS (zenith)
+7   height of scanner
+8   path ALS filtered points
+9   prefix to save ALS descriptors
+10  path of ALS viewpoints
+11  path ALS 2D image
+12  path ALS 3D image
+13  path TLS 2D image
+14  path TLS 3D image
+
+
 C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
+C:\data\ALS-TLS\viewpoints.las

@@ -21,7 +21,7 @@
 //	return true;
 //}
 
-int SimilarityEstimation::PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/)
+bool SimilarityEstimation::PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/)
 {
 	//截取高度角在20-120度之间
 	float resolution = 4.0;
@@ -104,9 +104,9 @@ bool SimilarityEstimation::similarityByOccupation(ViewDescriptor &src1, ViewDesc
 	{
 		PhaseSimilarityResult tempSR;
 		int numSame = 0;
-		for (int i = 0; i <= src1.Nv/2; ++i)
+		for (int j = 0; j < src1.Nh; ++j)		
 		{
-			for (int j = 0; j < src1.Nh; ++j)
+			for (int i = 0; i <= src1.Nv / 2; ++i)
 			{
 				int deltaJ = j + deltaCol < src1.Nh ? j + deltaCol : j + deltaCol - src1.Nh;
 				int index1 = j + i * src1.Nh;
@@ -185,15 +185,13 @@ bool SimilarityEstimation::similarityBySkyLine(ViewDescriptor &src1, ViewDescrip
 		int maxAngle1 = 0, maxAngle2 = 0;
 		for (int j = 0; j < src1.Nh; ++j)
 		{
-
 			for (int i = 0; i < src1.Nv; ++i)
 			{
 				if (src1.viewDepth[j + i*src1.Nh] > 0.0)
 				{
 					maxAngle1 = i;
 					break;
-				}
-					
+				}			
 			}
 			for (int i = 0; i < src1.Nv; ++i)
 			{
@@ -242,20 +240,19 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 	{
 		PhaseSimilarityResult tempSR;
 		float numSame = 0.0, gridSimilarity = 0.0, depthSimilarity = 0.0;
-		int maxAngle1 = 0, maxAngle2 = 0;
+		int maxAngle1 = -1, maxAngle2 = -1;
 		for (int j = 0; j < src1.Nh; ++j)
 		{
 			int deltaJ = j + deltaCol < src1.Nh ? j + deltaCol : j + deltaCol - src1.Nh;
-			for (int i = 0; i < src1.Nv; ++i)
+			for (int i = NvMin; i <= NvMax; ++i)
 			{
 				if (src1.viewDepth[j + i*src1.Nh] > 0.0)
 				{
 					maxAngle1 = i;
 					break;
 				}
-
 			}
-			for (int i = 0; i < src1.Nv; ++i)
+			for (int i = NvMin; i <= NvMax; ++i)
 			{				
 				if (src2.viewDepth[deltaJ + i*src2.Nh] > 0.0)
 				{
@@ -263,10 +260,14 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 					break;
 				}
 			}
-			if (maxAngle1 > src1.Nv / 2) maxAngle1 = src1.Nv / 2;
-			if (maxAngle2 > src1.Nv / 2) maxAngle2 = src1.Nv / 2;
+			//如果其中一列高度角为空，则相似度记为0
+			if (maxAngle1 < 0 || maxAngle2 < 0 )
+				continue;
 
-			//判断是否在
+			/*if (maxAngle1 > NvMax) maxAngle1 = NvMax;
+			if (maxAngle2 > NvMax) maxAngle2 = NvMax;*/
+
+			//判断最高遮挡角之差是否在考虑范围内
 			int gridD = abs(maxAngle1 - maxAngle2);
 			if (gridD <= minSkyDiff)
 			{
@@ -274,11 +275,9 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 				gridSimilarity = exp(0.0 - float(gridD*gridD) / minSkyDiff/minSkyDiff);
 				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);;
 				numSame += gridSimilarity*depthSimilarity;
-			}
-			
+			}			
 		}
-
-		tempSR.response = double(2 * numSame) / (src1.Nh*src1.Nv);
+		tempSR.response = numSame / src1.Nh;
 		tempSR.phase_shift.x = deltaCol;
 		tempSR.phase_shift.y = 0;
 		res.push_back(tempSR);

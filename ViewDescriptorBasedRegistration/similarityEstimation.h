@@ -31,8 +31,15 @@ struct PhaseSimilarityResult
 class SimilarityEstimation
 {
 public:
+
+	void setMinDist(float minDistance){ minDist = minDistance; };
+	void setMaxDist(float maxDistance){ maxDist = maxDistance; };
+	void setMinAngle(float minTLSAngle){ minAngle = minTLSAngle; };
+	void setMaxAngle(float maxTLSAngle){ maxAngle = maxTLSAngle; };
+	void setResolution(float skyResolution){ resolution = skyResolution; NvMin = int(minAngle / resolution); NvMax = int(maxAngle / resolution); };
+
 	//bool phaseCorrelateOpenCV(Mat &src1, Mat &src2, Point2d &phase_shift, double *response);
-	int PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/);
+	bool PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/);
 
 	//Ωµ–Ú≈≈–Ú
 	
@@ -44,7 +51,13 @@ public:
 	bool similarityBySkyLineAndDepth(ViewDescriptor &src1, ViewDescriptor &src2, PhaseSimilarityResult &sr);
 
 private:
-
+	float minDist;
+	float maxDist;
+	float minAngle;
+	float maxAngle;
+	float resolution;
+	int NvMin;
+	int NvMax;
 };
 
 

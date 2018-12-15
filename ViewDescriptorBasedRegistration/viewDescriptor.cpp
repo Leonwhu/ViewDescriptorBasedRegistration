@@ -22,7 +22,40 @@ bool ViewDescriptor::generateDescriptor()
 		dy = cloud->points[i].y - viewPoint.y;
 		dz = cloud->points[i].z - viewPoint.z;
 		distance = sqrt(dx*dx + dy*dy + dz*dz);
-		//设定小于最小距离的点不参与计算
+		float horDist = sqrt(dx*dx + dy*dy);
+		//设定小于最小距离，或水平方向大于最大距离的点不参与计算
+		if (distance <minDist || horDist >maxDist)
+			continue;
+		lati = 90.0 - RAD_TO_DEG * asin(dz / distance);
+		longi = 90.0 - RAD_TO_DEG * atan2(dy, dx);
+		if (longi < 0.0) longi += 360.0;
+		nx = int(lati / angResV);
+		ny = int(longi / angResH);
+		count = ny + nx*Nh;
+		if (viewDepth[count] < 0.0)
+			viewDepth[count] = distance;
+		else if (viewDepth[count] > distance)
+			viewDepth[count] = distance;
+	}
+	calculateSVFValue();
+	convert2DImage(200.0f);
+	return 1;
+}
+
+bool ViewDescriptor::generateDescriptorByKDTree(std::vector<int> &pointIdxRadiusSearch)
+{
+	viewDepth.resize(Nv*Nh, -1.0);
+
+	float dx, dy, dz, distance;
+	float lati, longi;
+	int nx, ny, count;
+	for (int i = 0; i < pointIdxRadiusSearch.size(); ++i)
+	{
+		dx = cloud->points[pointIdxRadiusSearch[i]].x - viewPoint.x;
+		dy = cloud->points[pointIdxRadiusSearch[i]].y - viewPoint.y;
+		dz = cloud->points[pointIdxRadiusSearch[i]].z - viewPoint.z;
+		distance = sqrt(dx*dx + dy*dy + dz*dz);
+		//设定小于最小距离，或水平方向大于最大距离的点不参与计算
 		if (distance <minDist)
 			continue;
 		lati = 90.0 - RAD_TO_DEG * asin(dz / distance);

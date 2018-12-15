@@ -49,9 +49,59 @@ void ALSViewDescriptor::getViewDescriptorsByDefault()
 		vd.setInputCloud(this->cloudALS);
 		vd.setResolutions(this->angResV, this->angResH);
 		vd.setMinDist(this->minDist);
+		vd.setMaxDist(this->maxDist);
 		vd.generateDescriptor();
 		ALSDescriptors->push_back(vd);
-		if (i%1000==0)
+		if (i%10000==0)
+		{
+			cout << i << endl;
+		}
+	}
+}
+
+void ALSViewDescriptor::getViewDescriptorsByKDTree()
+{
+	ALSDescriptors = new vector<ViewDescriptor>();
+	pcl::KdTreeFLANN<pcl::PointXY> kdtree;
+
+	// 将非地面点的xy作为 KdTree 输入
+	pcl::PointCloud<pcl::PointXY>::Ptr cloudXY(new pcl::PointCloud<pcl::PointXY>());
+	pcl::PointXY pt;
+	for (int i = 0; i < this->cloudALS->points.size(); ++i)
+	{
+		pt.x = this->cloudALS->points[i].x;
+		pt.y = this->cloudALS->points[i].y;
+		cloudXY->push_back(pt);
+	}
+	kdtree.setInputCloud(cloudXY);
+
+	// 创建一个点作为查找中心
+	pcl::PointXY searchPoint;
+	for (int i = 0; i < viewPoints->size()/*10*/; ++i)
+	{
+		//建立观测点
+		pcl::PointXYZ pt;
+		pt.x = viewPoints->points[i].x;
+		pt.y = viewPoints->points[i].y;
+		pt.z = viewPoints->points[i].z + heightScannerCenter;
+
+		//查找指定领域范围内的点
+		searchPoint.x = pt.x;
+		searchPoint.y = pt.y;
+		std::vector<int> pointIdxRadiusSearch;
+		std::vector<float> pointRadiusSquaredDistance;
+		kdtree.radiusSearch(searchPoint, maxDist, pointIdxRadiusSearch, pointRadiusSquaredDistance);
+		
+		//生成视角描述子
+		ViewDescriptor vd;	
+		vd.setViewPoint(pt);
+		vd.setInputCloud(this->cloudALS);
+		vd.setResolutions(this->angResV, this->angResH);
+		vd.setMinDist(this->minDist);
+		vd.setMaxDist(this->maxDist);
+		vd.generateDescriptorByKDTree(pointIdxRadiusSearch);
+		ALSDescriptors->push_back(vd);
+		if (i % 10000 == 0)
 		{
 			cout << i << endl;
 		}
