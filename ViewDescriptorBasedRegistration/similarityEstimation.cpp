@@ -273,7 +273,7 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 			{
 				float depthD = (src1.viewDepth[j + maxAngle1*src1.Nh] - src2.viewDepth[deltaJ + maxAngle2*src2.Nh]);
 				gridSimilarity = exp(0.0 - float(gridD*gridD) / minSkyDiff/minSkyDiff);
-				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);;
+				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);
 				numSame += gridSimilarity*depthSimilarity;
 			}			
 		}
@@ -284,5 +284,183 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 	}
 	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
 	sr = res[0];
+	return 1;
+}
+
+bool SimilarityEstimation::similarityDP(Skyline3DContour &sky1, Skyline3DContour &sky2, PhaseSimilarityResult &sr)
+{
+	if (sky1.Nh != sky2.Nh)
+	{
+		cout << "天际线轮廓分辨率不一致" << endl;
+		return false;
+	}
+	
+	vector<PhaseSimilarityResult> res;
+	for (int deltaCol = 0; deltaCol < sky1.Nh; ++deltaCol)
+	{
+		res.push_back(similaritySkylineOneDP(sky1, sky2, deltaCol, 3));
+	}
+	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
+	sr = res[0];
+	return 1;
+}
+float statusTrans(vector<vector<float>> &arr, int n, int m)
+{
+	float A, B, C;
+	if (n - 1 < 0 || n - 1 >= arr.size())
+		A = 0.0;
+	else
+		A = arr[n - 1][m];
+	if (m - 1 < 0 || m - 1 >= arr.size())
+		B = 0.0;
+	else
+		B = arr[n][m - 1];
+	if (n - 1 < 0 || n - 1 >= arr.size() || m - 1 < 0 || m - 1 >= arr.size())
+		C = 0.0;
+	else
+		C = arr[n - 1][m - 1];
+	return max(max(A,B),C);
+}
+
+PhaseSimilarityResult SimilarityEstimation::similaritySkylineOneDP(Skyline3DContour &sky1, Skyline3DContour &sky2, int deltaCol, int width)
+{
+	PhaseSimilarityResult sr;
+	//初始化DP表
+	int skySize = sky2.Nh;
+	vector<vector<float>> arr(skySize);
+	for (int i = 0; i < skySize; ++i)
+	{
+		arr[i].resize(skySize, 0.0);
+	}
+	arr[0][0] = sky1.pContours[0].getDistanceGaussianWeight(sky2.pContours[deltaCol]);
+	for (int k = 1; k < skySize; ++k)
+	{
+
+		for (int i = k - width + 1; i < k; ++i)//逐个更新到对角线元素减一
+		{
+			if (i<0) continue;
+			int kShift = k + deltaCol;
+			if (kShift >= skySize)
+				kShift -= skySize;
+			arr[i][k] = sky1.pContours[i].getDistanceGaussianWeight(sky2.pContours[kShift]) + statusTrans(arr, i, k);
+		}
+		for (int j = k - width + 1; j <= k; ++j)//逐个更新到对角线元素
+		{
+			if (j<0) continue;
+			int jShift = j + deltaCol;
+			if (jShift >= skySize)
+				jShift -= skySize;
+			arr[k][j] = sky1.pContours[k].getDistanceGaussianWeight(sky2.pContours[jShift]) + statusTrans(arr, k, j);
+		}
+	}
+	sr.phase_shift.x = deltaCol;
+	sr.response = arr[skySize - 1][skySize - 1]/skySize;
+	return sr;
+}
+
+bool SimilarityEstimation::searchDictionaryBruteForce(TLSViewDescriptor &tvd, ALSViewDescriptor &avd, SimilarityMeasurement sm, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews)
+{
+	DWORD t4, t5;
+	t4 = GetTickCount();
+	if (sm == ByPhaseCorre)
+	{
+		ofstream ofs_PhaseCorre("All_PhaseCorre.txt");
+		for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+		{
+			Mat imageTLS = tvd.TLSDescriptors->at(i).depthimage;
+			vector<PhaseSimilarityResult> curTLSSimilarity;
+			for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+			{
+				PhaseSimilarityResult tempSimilarity;
+				Mat imageALS = avd.ALSDescriptors->at(j).depthimage;
+				phaseCorrelateOpenCV(imageTLS, imageALS, tempSimilarity.phase_shift, tempSimilarity.response);
+		      tempSimilarity.alsIndex = j;
+				curTLSSimilarity.push_back(tempSimilarity);		
+			}
+			sort(curTLSSimilarity.begin(),curTLSSimilarity.end());	
+
+			//输出词典中最相似的单词对应的点
+			for (int k = 0; k < 1; ++k)
+			{
+				ofs_PhaseCorre << fixed << setprecision(3)
+					<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+				ofs_PhaseCorre << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+					<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+			}
+			
+			//输出所有匹配结果
+			string saveName;
+			saveName = "SimilarityResult_PhaseCorre" + to_string(i) +".txt";
+			ofstream ofs(saveName.c_str());
+			for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+			{			
+				ofs << fixed << setprecision(3)
+					<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+				ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " " 
+				    << curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+			}
+			ofs.close();
+		}
+		ofs_PhaseCorre.close();
+		return 1;
+	}
+	ofstream ofs_firstInAll("First_in_all_" + to_string(sm) + ".txt");
+	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	{
+		vector<PhaseSimilarityResult> curTLSSimilarity;
+		for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+		{
+			PhaseSimilarityResult tempSimilarity;
+			switch (sm)
+			{
+			case ByOccupation:
+				similarityByOccupation(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+			case BySkyline:
+				similarityBySkyLine(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+			case BySkylineAndDepth:
+				similarityBySkyLineAndDepth(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+			case ByDPSkyline:
+				similarityDP(tvd.TLSDescriptors->at(i).skyline, avd.ALSDescriptors->at(j).skyline, tempSimilarity);
+			}
+			tempSimilarity.alsIndex = j;
+			curTLSSimilarity.push_back(tempSimilarity);
+		}
+		sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+		t5 = GetTickCount();
+		LOG(INFO) << "Time for TLS " << to_string(i) << ": " << (t5 - t4)*1.0 / 1000 << " s" << endl;
+
+		for (int k = 0; k < 1; ++k)
+		{
+			ofs_firstInAll << fixed << setprecision(3)
+				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+			ofs_firstInAll << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+		}
+
+		//输出匹配结果
+		string saveName;
+		switch (sm)
+		{
+		case ByOccupation:
+			saveName = "SimilarityResult_Occupation" + to_string(i) + ".txt";
+		case BySkyline:
+			saveName = "SimilarityResult_Skyline" + to_string(i) + ".txt";
+		case BySkylineAndDepth:
+			saveName = "SimilarityResult_SkylineAndDepth" + to_string(i) + ".txt";
+		case ByDPSkyline:
+			saveName = "SimilarityResult_DPSkyline" + to_string(i) + ".txt";
+		}
+		ofstream ofs(saveName.c_str());
+		for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+		{
+			ofs << fixed << setprecision(3)
+				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+			ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+		}
+		ofs.close();
+	}
+	ofs_firstInAll.close();
+
 	return 1;
 }
