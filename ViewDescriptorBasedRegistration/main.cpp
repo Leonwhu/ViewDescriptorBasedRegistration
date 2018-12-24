@@ -27,17 +27,17 @@ void main()
 	io.readParalist("paraList.txt");
 	/*-------1. Êý¾Ý¶ÁÈ¡------*/
 	//¶ÁÈë»úÔØÊý¾Ý
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS(new pcl::PointCloud<pcl::PointXYZ>);
-	Bounds boundsALS;
-	CenterPoint centerALS;
-	int ptNumALS;
-	vector<short> *alsClass = new vector<short>();
-	string pathALS;
-	/*cout << "Please input the ALS data:" << endl;
-	cin >> pathALS;	*/
-	pathALS = io.paralist.pathALSPointCloud;
-	io.readLasData(pathALS, cloudALS, boundsALS, centerALS, ptNumALS, alsClass);
-	LOG(INFO) << "Number of points: " << ptNumALS << endl;
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS(new pcl::PointCloud<pcl::PointXYZ>);
+	//Bounds boundsALS;
+	//CenterPoint centerALS;
+	//int ptNumALS;
+	//vector<short> *alsClass = new vector<short>();
+	//string pathALS;
+	///*cout << "Please input the ALS data:" << endl;
+	//cin >> pathALS;	*/
+	//pathALS = io.paralist.pathALSPointCloud;
+	//io.readLasData(pathALS, cloudALS, boundsALS, centerALS, ptNumALS, alsClass);
+	//LOG(INFO) << "Number of points: " << ptNumALS << endl;
 
 	//¶ÁÈëµØÃæÕ¾Êý¾Ý
 	/*string pathTLSFolder;
@@ -57,43 +57,43 @@ void main()
 	/*-------2. »úÔØÌØÕ÷´ÊµäÉú³É/¶ÁÈ¡------*/
 	//¸ñÍø»¯->ÖðµãÉú³Éµ¥´Ê->Êä³ö
 	//¸ñÍø»¯-´Ó»úÔØµãÔÆÖÐ³éÈ¡Éú³É´ÊµäµÄÊÓ½Çµã	
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround(new pcl::PointCloud<pcl::PointXYZ>);
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSGround(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSNonground(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
 	ViewGeneration vg;
 	vg.getALSGround(cloudALS, alsClass, cloudALSGround, cloudALSNonground);
-	vg.getViewsFromALS_GroundSample(cloudALSGround, cloudALSViews, io.paralist.gridsizeALS);
+	vg.getViewsFromALS_GroundSample(cloudALSGround, cloudALSViews, io.paralist.gridsizeALS);*/
 	//io.OutputLas("viewpoints.las", cloudALSViews, centerALS, boundsALS);
 
 	////ÖðµãÉú³ÉÊÓ½ÇÃèÊö×Ó
-	t1 = GetTickCount();
-	ALSViewDescriptor avd;
-	avd.setInputALS(cloudALSNonground);
-	avd.setViewPoints(cloudALSViews);
-	avd.setHeightScannerCenter(io.paralist.heightScanner);
-	avd.setMinDistance(io.paralist.minDist);
-	avd.setMaxDistance(io.paralist.maxDist);
-	avd.setResolutions(io.paralist.resolutionSkyDivision,io.paralist.resolutionSkyDivision);
-	avd.setSaveFolder(io.paralist.saveALSFolderPre);
+	//t1 = GetTickCount();
+	//ALSViewDescriptor avd;
+	//avd.setInputALS(cloudALSNonground);
+	//avd.setViewPoints(cloudALSViews);
+	//avd.setHeightScannerCenter(io.paralist.heightScanner);
+	//avd.setMinDistance(io.paralist.minDist);
+	//avd.setMaxDistance(io.paralist.maxDist);
+	//avd.setResolutions(io.paralist.resolutionSkyDivision,io.paralist.resolutionSkyDivision);
+	//avd.setSaveFolder(io.paralist.saveALSFolderPre);
 
-	//avd.getViewDescriptorsByDefault();
-	avd.getViewDescriptorsByKDTree();
-	t2 = GetTickCount();
-	LOG(INFO) << "Time for generating view dictionary: " << (t2 - t1)*1.0 / 1000 << " s" << endl;
-	
-	avd.outputALSViewDescriptors3DImage();
-	avd.outputALSViewDescriptors2DImage();
-	t3 = GetTickCount();
-	LOG(INFO) << "Time for saving view dictionary: " << (t3 - t2)*1.0 / 1000 << " s" << endl;
+	////avd.getViewDescriptorsByDefault();
+	//avd.getViewDescriptorsByKDTree();
+	//t2 = GetTickCount();
+	//LOG(INFO) << "Time for generating view dictionary: " << (t2 - t1)*1.0 / 1000 << " s" << endl;
+	//
+	//avd.outputALSViewDescriptors3DImage();
+	//avd.outputALSViewDescriptors2DImage();
+	//t3 = GetTickCount();
+	//LOG(INFO) << "Time for saving view dictionary: " << (t3 - t2)*1.0 / 1000 << " s" << endl;
 
 	//¶ÁÈëÊÓ½Çµã£¬Ñ¡È¡Àë¸ñÍøÖÐÐÄ×î½üµÄµãÎªÊÓ½Çµã
-	//Bounds boundsALSViews;
-	//CenterPoint centerALSViews;
-	//int ptNumALSViews;
-	//string pathALSViews = io.paralist.pathALSViews; 
-	////pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
-	//io.readLasFile(pathALSViews, cloudALSViews);
-	//LOG(INFO) << "¶ÁÈ¡ALSÊÓ½Çµã¸öÊý£º" << cloudALSViews->points.size() << endl;
+	Bounds boundsALSViews;
+	CenterPoint centerALSViews;
+	int ptNumALSViews;
+	string pathALSViews = io.paralist.pathALSViews; 
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews(new pcl::PointCloud<pcl::PointXYZ>);
+	io.readLasFile(pathALSViews, cloudALSViews);
+	LOG(INFO) << "¶ÁÈ¡ALSÊÓ½Çµã¸öÊý£º" << cloudALSViews->points.size() << endl;
 
 	//¶ÁÈë2D´Êµä
 	
@@ -106,18 +106,8 @@ void main()
 	//avd.read2DImagesAsDescriptors(als2DImages);/**/
 
 	//¶ÁÈë3D´Êµä
-<<<<<<< HEAD
-<<<<<<< HEAD
-	//ALSViewDescriptor avd;
-	/*avd.ALSDescriptors = new vector<ViewDescriptor>();
-=======
 	ALSViewDescriptor avd;
 	avd.ALSDescriptors = new vector<ViewDescriptor>();
->>>>>>> parent of 34153d8... DPSkylineMinimal
-=======
-	//ALSViewDescriptor avd;
-	/*avd.ALSDescriptors = new vector<ViewDescriptor>();
->>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 	string pathALSDescriptors = io.paralist.pathALS3D;
 	vector<string> als3DImages;
 	string alsExtension = ".txt";
@@ -127,15 +117,7 @@ void main()
 	for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
 	{
 		avd.ALSDescriptors->at(i).convert2DImage(200.0);
-<<<<<<< HEAD
-<<<<<<< HEAD
-	}*/
-=======
 	}
->>>>>>> parent of 34153d8... DPSkylineMinimal
-=======
-	}*/
->>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 
 
 	/*-------3. µØÃæÕ¾´ÊµäÉú³É/¶ÁÈ¡------*/	
@@ -159,26 +141,12 @@ void main()
 	io.readFileNamesInFolder(pathTLSDescriptors, tlsExtension, tls3DImages);
 	io.sortFileNames(tls3DImages);
 	tvd.read3DImagesAsDescriptors(tls3DImages);/**/
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
-	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
-	{
-		tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
-		tvd.TLSDescriptors->at(i).convert2DImage(200.0);
-	}	
-<<<<<<< HEAD
-=======
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
 	//	tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
 	//	//tvd.TLSDescriptors->at(i).convert2DImage(200.0);
 	//	//tvd.TLSDescriptors->at(i).generateSkyline();
 	//}	
->>>>>>> parent of 34153d8... DPSkylineMinimal
-=======
->>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 
 	/*-------4. µØÃæÕ¾ÌØÕ÷Æ¥Åä------*/
 	//ÌØÕ÷Æ¥Åä->½á¹ûÉ¸Ñ¡
@@ -191,9 +159,6 @@ void main()
 	se.setMinDist(io.paralist.minDist);
 	se.setMaxDist(io.paralist.maxDist);
 	se.setResolution(io.paralist.resolutionSkyDivision);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
 
 	int NvMin = int(io.paralist.minAngle / io.paralist.resolutionSkyDivision);
@@ -210,9 +175,6 @@ void main()
 		avd.ALSDescriptors->at(i).generateSkylineWithScanAngle(NvMin, NvMax);
 	}
 	se.searchDictionaryBruteForce(tvd, avd, ByDPSkyline, cloudALSViews);
->>>>>>> parent of 34153d8... DPSkylineMinimal
-=======
->>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 	//ÏàÎ»Ïà¹Ø·¨£¬2DÉî¶ÈÍ¼²»×ö´¦Àí
 	//ofstream ofs_PhaseCorre("All_PhaseCorre.txt");
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
@@ -371,46 +333,46 @@ void main()
 	//}
 	//ofs_SkylineResult.close();
 
-	//°´Ìì¼ÊÏß+Éî¶È¹À¼ÆÏàËÆÐÔ
-	ofstream ofs_SkylineAndDepth("All_SkylineAndDepthLargerALS.txt");
-	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
-	{
-		t4 = GetTickCount();
-		vector<PhaseSimilarityResult> curTLSSimilarity;
-		for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
-		{
-			PhaseSimilarityResult tempSimilarity;
-			se.similarityBySkyLineAndDepth(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
-			tempSimilarity.alsIndex = j;
-			curTLSSimilarity.push_back(tempSimilarity);
-		}
-		sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
-		//Êä³öÆ¥Åä¶È×î¸ßµÄµã
-		for (int k = 0; k < 1; ++k)
-		{
-			ofs_SkylineAndDepth << fixed << setprecision(3)
-				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
-			ofs_SkylineAndDepth << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
-				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
-		}
-		//Êä³öÆ¥Åä½á¹û
-		t5 = GetTickCount();
-		LOG(INFO) << "Time for TLS " << to_string(i) << ": " << (t5 - t4)*1.0 / 1000 << " s" << endl;
-		string saveName;
-		saveName = "SimilarityResult_SkylineAndDepthLargerALS_" + to_string(i) + ".txt";
-		ofstream ofs(saveName.c_str());
-		//ofs << "*******************TLS index£º" << i << "*************************" << endl;
-		for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
-		{
-			ofs << fixed << setprecision(3)
-				<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
-			ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
-				<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
-		}
-		//similarity->push_back(curTLSSimilarity);
-		ofs.close();
-	}
-	ofs_SkylineAndDepth.close();
+	////°´Ìì¼ÊÏß+Éî¶È¹À¼ÆÏàËÆÐÔ
+	//ofstream ofs_SkylineAndDepth("All_SkylineAndDepthLargerALS.txt");
+	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	//{
+	//	t4 = GetTickCount();
+	//	vector<PhaseSimilarityResult> curTLSSimilarity;
+	//	for (int j = 0; j < avd.ALSDescriptors->size(); ++j)
+	//	{
+	//		PhaseSimilarityResult tempSimilarity;
+	//		se.similarityBySkyLineAndDepth(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
+	//		tempSimilarity.alsIndex = j;
+	//		curTLSSimilarity.push_back(tempSimilarity);
+	//	}
+	//	sort(curTLSSimilarity.begin(), curTLSSimilarity.end());
+	//	//Êä³öÆ¥Åä¶È×î¸ßµÄµã
+	//	for (int k = 0; k < 1; ++k)
+	//	{
+	//		ofs_SkylineAndDepth << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs_SkylineAndDepth << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	//Êä³öÆ¥Åä½á¹û
+	//	t5 = GetTickCount();
+	//	LOG(INFO) << "Time for TLS " << to_string(i) << ": " << (t5 - t4)*1.0 / 1000 << " s" << endl;
+	//	string saveName;
+	//	saveName = "SimilarityResult_SkylineAndDepthLargerALS_" + to_string(i) + ".txt";
+	//	ofstream ofs(saveName.c_str());
+	//	//ofs << "*******************TLS index£º" << i << "*************************" << endl;
+	//	for (int k = 0; k < avd.ALSDescriptors->size(); ++k)
+	//	{
+	//		ofs << fixed << setprecision(3)
+	//			<< cloudALSViews->points[curTLSSimilarity[k].alsIndex].x << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].y << " " << cloudALSViews->points[curTLSSimilarity[k].alsIndex].z << " ";
+	//		ofs << curTLSSimilarity[k].response << " " << curTLSSimilarity[k].alsIndex << " "
+	//			<< curTLSSimilarity[k].phase_shift.x << " " << curTLSSimilarity[k].phase_shift.y << endl;
+	//	}
+	//	//similarity->push_back(curTLSSimilarity);
+	//	ofs.close();
+	//}
+	//ofs_SkylineAndDepth.close();
 	
 
 	//¶ÔÇ°NÏàËÆ¾ÛÀà£¬È¥³ýÀëÈºµã£¬È·¶¨Í¬ÃûÌØÕ÷

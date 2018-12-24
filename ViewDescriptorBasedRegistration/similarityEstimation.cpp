@@ -273,7 +273,7 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 			{
 				float depthD = (src1.viewDepth[j + maxAngle1*src1.Nh] - src2.viewDepth[deltaJ + maxAngle2*src2.Nh]);
 				gridSimilarity = exp(0.0 - float(gridD*gridD) / minSkyDiff/minSkyDiff);
-				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);;
+				depthSimilarity = exp(0.0 - depthD*depthD / rDepth / rDepth);
 				numSame += gridSimilarity*depthSimilarity;
 			}			
 		}
@@ -285,9 +285,6 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
 	sr = res[0];
 	return 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 }
 
 bool SimilarityEstimation::similarityDP(Skyline3DContour &sky1, Skyline3DContour &sky2, PhaseSimilarityResult &sr)
@@ -466,7 +463,4 @@ bool SimilarityEstimation::searchDictionaryBruteForce(TLSViewDescriptor &tvd, AL
 	ofs_firstInAll.close();
 
 	return 1;
->>>>>>> parent of 34153d8... DPSkylineMinimal
-=======
->>>>>>> parent of 2d88375... 增加DP算法计算相似度
 }
