@@ -5,7 +5,6 @@
 #include <opencv2/core/core.hpp> 
 #include<opencv2/highgui/highgui.hpp> 
 using namespace cv;
-using namespace utility;
 
 #define RAD_TO_DEG (180/(4*atan(1)))//pi=4*atan(1)  
 #define DEG_TO_RAD ((4*atan(1))/180)
@@ -137,11 +136,14 @@ void ViewDescriptor::outputViewDescriptor3DImage(const string &filename)
 	ofs.close();
 }
 
+<<<<<<< HEAD
+=======
 void ViewDescriptor::outputViewDescriptorSkyline(const string &filename)
 {
 
 }
 
+>>>>>>> parent of 34153d8... DPSkylineMinimal
 void ViewDescriptor::outputViewDescriptor2DImage(const string &filename)
 {
 	//Mat M(Nv, Nh, CV_8UC1);//创建一个灰度图的Mat对象
@@ -225,46 +227,6 @@ void ViewDescriptor::filterNoiseBy2DDensity(int radius, int minNum)
 			}
 			if (numHasPoint <= minNum)
 				this->viewDepth[j + i*this->Nh] = -1.0;
-		}
-	}
-}
-
-void ViewDescriptor::generateSkyline()
-{
-	skyline.Nh = Nh;
-	skyline.pContours.resize(skyline.Nh);
-	for (int j = 0; j < Nh; ++j)
-	{
-		skyline.pContours[j].highAngle = Nv;
-		skyline.pContours[j].depth = -1.0;
-		for (int i = 0; i < Nv; ++i)
-		{
-			if (viewDepth[j + i*Nh] > 0.0)
-			{
-				skyline.pContours[j].highAngle = i;
-				skyline.pContours[j].depth = viewDepth[j + i*Nh];
-				break;
-			}
-		}
-	}
-}
-
-void ViewDescriptor::generateSkylineWithScanAngle(int NvMin, int NvMax)
-{
-	skyline.Nh = Nh;
-	skyline.pContours.resize(skyline.Nh);
-	for (int j = 0; j < Nh; ++j)
-	{
-		skyline.pContours[j].highAngle = NvMax;
-		skyline.pContours[j].depth = -1.0;
-		for (int i = NvMin; i <= NvMax; ++i)
-		{
-			if (viewDepth[j + i*Nh] > 0.0)
-			{
-				skyline.pContours[j].highAngle = i;
-				skyline.pContours[j].depth = viewDepth[j + i*Nh];
-				break;
-			}
 		}
 	}
 }

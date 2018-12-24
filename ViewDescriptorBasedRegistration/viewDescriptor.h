@@ -13,13 +13,6 @@
 using namespace std;
 using namespace utility;
 
-
-struct Skyline3DContour
-{
-	vector<ContourPoint> pContours;
-	int Nh;
-};
-
 class ViewDescriptor
 {
 public:
@@ -31,13 +24,8 @@ public:
 	void setMaxDist(float maxDistance){ maxDist = maxDistance; };
 	//void setDescriptor(vector<float> *descriptor){ descriptor = descriptor; };
 	void setResolutions(float angularResolutionV, float angularResolutionH){
-		angResV = angularResolutionV; angResH = angularResolutionH; Nv = int(180.0 / angResV); Nh = int(360.0 / angResH); 		
+		angResV = angularResolutionV; angResH = angularResolutionH; Nv = int(180.0 / angResV); Nh = int(360.0 / angResH); 
 	};
-	void setTLSAngle(float minTLSAngle, float maxTLSAngle){
-		minAngle = minTLSAngle; maxAngle = maxTLSAngle; 
-		NvMin = int(minAngle / angResH); NvMax = int(maxAngle / angResH); 
-	};
-
 	void setNvNh(int Nvertical, int Nhorizontal){ Nv = Nvertical; Nh = Nhorizontal; };
 	
 	bool generateDescriptor();
@@ -53,26 +41,17 @@ public:
 	
 	void filterNoiseBy2DDensity(int radius, int minNum);
 
-	void generateSkyline();
-	void generateSkylineWithScanAngle(int NvMin, int NvMax);
-	void outputViewDescriptorSkyline(const string &filename);
-
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 	pcl::PointXYZ viewPoint;
 	cv::Mat depthimage;
 	vector<float> viewDepth;
-	Skyline3DContour skyline;
 	float angResV;
 	float angResH;
 	float minDist;
 	float maxDist;
-	float minAngle;
-	float maxAngle;
 	int Nv;
 	int Nh;
-	int NvMin;
-	int NvMax=0;
 	float svf=0.0;
 
 protected:

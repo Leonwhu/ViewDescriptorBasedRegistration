@@ -147,41 +147,6 @@ namespace utility
 			similarity = 0.0f;
 		}
 	};
-	struct ContourPoint
-	{
-		int highAngle;
-		float depth;
-		float getDistanceGaussianWeight(ContourPoint &p2)
-		{
-			float rDepth = 5.0;
-			//如果该方向为空，不计算相似度
-			if (this->depth < 0.0 || p2.depth < 0.0)
-				return 0.0;
-
-			//高斯函数赋权
-			float gWeight[4] = {1.0,0.895,0.641,0.368};
-			int dAngle = abs(this->highAngle - p2.highAngle);
-			float wAngle, wDepth;
-			if (dAngle > 3)
-				return 0.0;
-			else
-				wAngle = gWeight[dAngle];
-			/*else if (dAngle == 0)
-				wAngle = 1.0;
-			else if (dAngle == 1)
-				wAngle = 0.895;
-			else if (dAngle == 2)
-				wAngle = 0.641;
-			else if (dAngle ==3)
-				wAngle = 0.368;*/
-			float dDepth = this->depth - p2.depth;
-			wDepth = exp(0.0 - dDepth*dDepth / rDepth / rDepth);			
-			return wAngle*wDepth;
-		}
-	};
-	
 }
-
-
 
 #endif

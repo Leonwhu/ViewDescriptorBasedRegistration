@@ -7,9 +7,9 @@
 1.5
 C:\data\lqs-whole\lqs-ALS-Whole-StripMergeFilteredresult.las
 C:\data\lqs-whole\ALSDescriptors
-C:\data\lqs-whole\ALS-Whole-Viewpoints.las
-C:\data\lqs-whole\ALSDescriptors_ALS_2DImages
-C:\data\lqs-whole\ALSDescriptors_ALS_3DImages
+C:\data\ALS-TLS\ALS-Whole-Viewpoints.las
+C:\data\ALS-TLS\ALSDescriptors_ALS_2DImages
+C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\lqs-whole\test-tls
 
@@ -31,6 +31,9 @@ C:\data\lqs-whole\test-tls
 
 
 C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
+<<<<<<< HEAD
+C:\data\ALS-TLS\viewpoints.las
+=======
 C:\data\ALS-TLS\viewpoints.las
 C:\data\lqs-whole\lqs-ALS-Whole-StripMergeFilteredresult.las
 C:\data\lqs-whole\ALSDescriptors
@@ -39,3 +42,4 @@ C:\data\lqs-whole\ALSDescriptors_ALS_2DImages
 C:\data\lqs-whole\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
+>>>>>>> parent of 34153d8... DPSkylineMinimal
