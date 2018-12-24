@@ -286,6 +286,7 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 	sr = res[0];
 	return 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 }
 
@@ -466,4 +467,6 @@ bool SimilarityEstimation::searchDictionaryBruteForce(TLSViewDescriptor &tvd, AL
 
 	return 1;
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... 增加DP算法计算相似度
 }

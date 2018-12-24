@@ -8,12 +8,15 @@
 using namespace cv;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 enum SimilarityMeasurement
 {
 	ByPhaseCorre, ByOccupation, BySkyline, BySkylineAndDepth, ByDPSkyline
 };
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... 增加DP算法计算相似度
 
 struct PhaseSimilarityResult
 {
@@ -44,6 +47,7 @@ public:
 	void setMinAngle(float minTLSAngle){ minAngle = minTLSAngle; };
 	void setMaxAngle(float maxTLSAngle){ maxAngle = maxTLSAngle; };
 <<<<<<< HEAD
+<<<<<<< HEAD
 	void setResolution(float skyResolution){ resolution = skyResolution; NvMin = int(minAngle / resolution); NvMax = int(maxAngle / resolution); };
 =======
 	void setResolution(float skyResolution){ 
@@ -51,6 +55,9 @@ public:
 		NvMin = int(minAngle / resolution); 
 		NvMax = int(maxAngle / resolution); };
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+	void setResolution(float skyResolution){ resolution = skyResolution; NvMin = int(minAngle / resolution); NvMax = int(maxAngle / resolution); };
+>>>>>>> parent of 2d88375... 增加DP算法计算相似度
 
 	//bool phaseCorrelateOpenCV(Mat &src1, Mat &src2, Point2d &phase_shift, double *response);
 	bool PreProcessByOpenCV(Mat& src, Mat& dst/*, int x, int y, int w, int h*/);
@@ -65,6 +72,7 @@ public:
 	bool similarityBySkyLineAndDepth(ViewDescriptor &src1, ViewDescriptor &src2, PhaseSimilarityResult &sr);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	bool similarityDP(Skyline3DContour &sky1, Skyline3DContour &sky2, PhaseSimilarityResult &sr);
 	PhaseSimilarityResult similaritySkylineOneDP(Skyline3DContour &sky1, Skyline3DContour &sky2, int deltaJ, int width);
@@ -72,6 +80,8 @@ public:
 	bool searchDictionaryBruteForce(TLSViewDescriptor &tvd, ALSViewDescriptor &avd, SimilarityMeasurement sm, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALSViews);
 
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... 增加DP算法计算相似度
 private:
 	float minDist;
 	float maxDist;

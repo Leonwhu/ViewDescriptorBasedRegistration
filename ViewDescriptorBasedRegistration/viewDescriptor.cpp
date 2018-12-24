@@ -137,6 +137,7 @@ void ViewDescriptor::outputViewDescriptor3DImage(const string &filename)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 void ViewDescriptor::outputViewDescriptorSkyline(const string &filename)
 {
@@ -144,6 +145,8 @@ void ViewDescriptor::outputViewDescriptorSkyline(const string &filename)
 }
 
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 void ViewDescriptor::outputViewDescriptor2DImage(const string &filename)
 {
 	//Mat M(Nv, Nh, CV_8UC1);//´´½¨Ò»¸ö»Ò¶ÈÍ¼µÄMat¶ÔÏó

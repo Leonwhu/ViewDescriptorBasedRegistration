@@ -107,12 +107,17 @@ void main()
 
 	//¶ÁÈë3D´Êµä
 <<<<<<< HEAD
+<<<<<<< HEAD
 	//ALSViewDescriptor avd;
 	/*avd.ALSDescriptors = new vector<ViewDescriptor>();
 =======
 	ALSViewDescriptor avd;
 	avd.ALSDescriptors = new vector<ViewDescriptor>();
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+	//ALSViewDescriptor avd;
+	/*avd.ALSDescriptors = new vector<ViewDescriptor>();
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 	string pathALSDescriptors = io.paralist.pathALS3D;
 	vector<string> als3DImages;
 	string alsExtension = ".txt";
@@ -123,10 +128,14 @@ void main()
 	{
 		avd.ALSDescriptors->at(i).convert2DImage(200.0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	}*/
 =======
 	}
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+	}*/
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 
 
 	/*-------3. µØÃæÕ¾´ÊµäÉú³É/¶ÁÈ¡------*/	
@@ -151,11 +160,15 @@ void main()
 	io.sortFileNames(tls3DImages);
 	tvd.read3DImagesAsDescriptors(tls3DImages);/**/
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	{
 		tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
 		tvd.TLSDescriptors->at(i).convert2DImage(200.0);
 	}	
+<<<<<<< HEAD
 =======
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
@@ -164,6 +177,8 @@ void main()
 	//	//tvd.TLSDescriptors->at(i).generateSkyline();
 	//}	
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 
 	/*-------4. µØÃæÕ¾ÌØÕ÷Æ¥Åä------*/
 	//ÌØÕ÷Æ¥Åä->½á¹ûÉ¸Ñ¡
@@ -176,6 +191,7 @@ void main()
 	se.setMinDist(io.paralist.minDist);
 	se.setMaxDist(io.paralist.maxDist);
 	se.setResolution(io.paralist.resolutionSkyDivision);
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -195,6 +211,8 @@ void main()
 	}
 	se.searchDictionaryBruteForce(tvd, avd, ByDPSkyline, cloudALSViews);
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+>>>>>>> parent of 2d88375... å¢žåŠ DPç®—æ³•è®¡ç®—ç›¸ä¼¼åº¦
 	//ÏàÎ»Ïà¹Ø·¨£¬2DÉî¶ÈÍ¼²»×ö´¦Àí
 	//ofstream ofs_PhaseCorre("All_PhaseCorre.txt");
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)

@@ -11,7 +11,7 @@ C:\data\ALS-TLS\ALS-Whole-Viewpoints.las
 C:\data\ALS-TLS\ALSDescriptors_ALS_2DImages
 C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
-C:\data\lqs-whole\test-tls
+C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
 
 //Notification
 1   resolution of ALS grid
@@ -32,6 +32,7 @@ C:\data\lqs-whole\test-tls
 
 C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
 <<<<<<< HEAD
+<<<<<<< HEAD
 C:\data\ALS-TLS\viewpoints.las
 =======
 C:\data\ALS-TLS\viewpoints.las
@@ -43,3 +44,6 @@ C:\data\lqs-whole\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
 >>>>>>> parent of 34153d8... DPSkylineMinimal
+=======
+C:\data\ALS-TLS\viewpoints.las
+>>>>>>> parent of 2d88375... 增加DP算法计算相似度
