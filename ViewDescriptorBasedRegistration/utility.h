@@ -149,37 +149,62 @@ namespace utility
 	};
 	struct ContourPoint
 	{
-		int highAngle;
+		int zenithAngle;
 		float depth;
-		float getDistanceGaussianWeight(ContourPoint &p2)
-		{
-			float rDepth = 5.0;
+		float getSimilarityGaussianWeight(ContourPoint &p2)
+		{			
 			//如果该方向为空，不计算相似度
 			if (this->depth < 0.0 || p2.depth < 0.0)
 				return 0.0;
 
-			//高斯函数赋权
-			float gWeight[4] = {1.0,0.895,0.641,0.368};
-			int dAngle = abs(this->highAngle - p2.highAngle);
-			float wAngle, wDepth;
+			//高斯函数赋权，对应dAngle为0,1,2,3
+			float gaussianWeight[4] = {1.0,0.895,0.641,0.368};
+			float rDepth = 5.0;//深度差高斯核半径
+			int dAngle = abs(this->zenithAngle - p2.zenithAngle);
+			float weightAngle, weightDepth;
 			if (dAngle > 3)
 				return 0.0;
 			else
-				wAngle = gWeight[dAngle];
-			/*else if (dAngle == 0)
-				wAngle = 1.0;
-			else if (dAngle == 1)
-				wAngle = 0.895;
-			else if (dAngle == 2)
-				wAngle = 0.641;
-			else if (dAngle ==3)
-				wAngle = 0.368;*/
+				weightAngle = gaussianWeight[dAngle];
 			float dDepth = this->depth - p2.depth;
-			wDepth = exp(0.0 - dDepth*dDepth / rDepth / rDepth);			
-			return wAngle*wDepth;
+			weightDepth = exp(0.0 - dDepth*dDepth / rDepth / rDepth);
+			return weightAngle*weightDepth;
+		}
+		//高度角为TLS扫描角上限时，相似度计算不同
+		float getSimilarityGaussianWeightT2A(ContourPoint &p2, int minZenithAngle)
+		{
+			//如果该方向为空，不计算相似度
+			if (this->depth < 0.0 || p2.depth < 0.0)
+				return 0.0;
+			
+			//高斯函数赋权，对应dAngle为0,1,2,3
+			float gaussianWeight[4] = { 1.0, 0.895, 0.641, 0.368 };
+			//考虑TLS中扫描角上限的影响
+			if ((this->zenithAngle - minZenithAngle)<=1)//若TLS天际线为扫描角上限，则只考虑角度差
+			{
+				int dAngle = abs(this->zenithAngle - p2.zenithAngle);
+				float weightAngle;
+				if (dAngle > 3)
+					return 0.0;
+				else
+					weightAngle = gaussianWeight[dAngle];
+				return weightAngle;
+			}
+			else
+			{
+				float rDepth = 5.0;//深度差高斯核半径
+				int dAngle = abs(this->zenithAngle - p2.zenithAngle);
+				float weightAngle, weightDepth;
+				if (dAngle > 3)
+					return 0.0;
+				else
+					weightAngle = gaussianWeight[dAngle];
+				float dDepth = this->depth - p2.depth;
+				weightDepth = exp(0.0 - dDepth*dDepth / rDepth / rDepth);
+				return weightAngle*weightDepth;
+			}
 		}
 	};
-	
 }
 
 

@@ -26,9 +26,10 @@ struct Paralist{
 	float minAngle;                   //min scanning angle of TLS (zenith)
 	float maxAngle;                   //max scanning angle of TLS (zenith)
 	float heightScanner;              //height of scanner
+	float widthDP;                    //width for DP similarity calculation
 
 	//…˙≥…¥ µ‰
-	string pathALSPointCloud;              //path of ALS point cloud
+	string pathALSPointCloud;         //path of ALS point cloud
 	string saveALSFolderPre;          //path to save ALS view descriptors
 
 	//∂¡»Î¥ µ‰
@@ -37,6 +38,7 @@ struct Paralist{
 	string pathALS3D;                 //path of ALS 3D image
 	string pathTLS2D;                 //path of TLS 2D image
 	string pathTLS3D;                 //path of TLS 3D image
+	string pathALSDic;                //path of binary ALS Dictionary 
 	int Nv; 
 	int Nh;
 	//pcl::PointXYZ pview;

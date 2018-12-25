@@ -110,22 +110,44 @@ void ALSViewDescriptor::getViewDescriptorsByKDTree()
 
 void ALSViewDescriptor::outputDictionaryBinary(const char* p_path)
 {
-	/*std::ofstream bout(p_path, std::ios::binary | std::ios::out);
-	bout.write((char*)(this->ALSDescriptors->size()), sizeof(int));
+	std::ofstream bout(p_path, std::ios::binary | std::ios::out);
+	int dicSize = this->ALSDescriptors->size();
+	bout.write((char*)&dicSize, sizeof(int));
 	bout.write((char*)&this->Nv, sizeof(int));
 	bout.write((char*)&this->Nh, sizeof(int));
 	for (int i = 0; i < this->ALSDescriptors->size(); ++i)
 	{
-		float pt_temp[6];
-		pt_temp[0] = cloud_xyz->points[i].x;
-		pt_temp[1] = cloud_xyz->points[i].y;
-		pt_temp[2] = cloud_xyz->points[i].z;
-		pt_temp[3] = cloud_xyz->points[i].normal_x;
-		pt_temp[4] = cloud_xyz->points[i].normal_y;
-		pt_temp[5] = cloud_xyz->points[i].normal_z;
-		ofs.write((char*)&pt_temp, 6 * sizeof(float));
+		for (int idxNh = 0; idxNh < Nh; ++idxNh)
+		{
+			bout.write((char*)&ALSDescriptors->at(i).skyline.pContours[idxNh].zenithAngle, sizeof(int));
+			bout.write((char*)&ALSDescriptors->at(i).skyline.pContours[idxNh].depth, sizeof(float));
+		}
 	}
-	ofs.close();*/
+	bout.close();
+}
+
+void ALSViewDescriptor::readDictionaryBinary(const char* p_path)
+{
+	this->ALSDescriptors->swap(vector<ViewDescriptor>());
+	std::ifstream bin(p_path, std::ios::binary | std::ios::in);
+	int dicSize;
+	bin.read((char*)&dicSize, sizeof(int));
+	bin.read((char*)&Nv, sizeof(int));
+	bin.read((char*)&Nh, sizeof(int));
+	for (int i = 0; i < dicSize; ++i)
+	{
+		ViewDescriptor tempVD;
+		for (int idxNh = 0; idxNh < Nh; ++idxNh)
+		{
+			ContourPoint tempCP;
+			bin.read((char*)&tempCP.zenithAngle, sizeof(int));
+			bin.read((char*)&tempCP.depth, sizeof(float));
+			tempVD.skyline.Nh = Nh;
+			tempVD.skyline.pContours.push_back(tempCP);
+		}
+		ALSDescriptors->push_back(tempVD);
+	}
+	bin.close();
 }
 
 void ALSViewDescriptor::read2DImagesAsDescriptors(vector<string> &fileNames)

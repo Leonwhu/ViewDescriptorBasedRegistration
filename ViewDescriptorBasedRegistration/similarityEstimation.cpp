@@ -287,18 +287,18 @@ bool SimilarityEstimation::similarityBySkyLineAndDepth(ViewDescriptor &src1, Vie
 	return 1;
 }
 
-bool SimilarityEstimation::similarityDP(Skyline3DContour &sky1, Skyline3DContour &sky2, PhaseSimilarityResult &sr)
+bool SimilarityEstimation::similarityDPT2A(Skyline3DContour &tlsSkyline, Skyline3DContour &alsSkyline, PhaseSimilarityResult &sr)
 {
-	if (sky1.Nh != sky2.Nh)
+	if (tlsSkyline.Nh != alsSkyline.Nh)
 	{
 		cout << "天际线轮廓分辨率不一致" << endl;
 		return false;
 	}
 	
 	vector<PhaseSimilarityResult> res;
-	for (int deltaCol = 0; deltaCol < sky1.Nh; ++deltaCol)
+	for (int deltaCol = 0; deltaCol < tlsSkyline.Nh; ++deltaCol)
 	{
-		res.push_back(similaritySkylineOneDP(sky1, sky2, deltaCol, 3));
+		res.push_back(similaritySkylineOneDPT2A(tlsSkyline, alsSkyline, deltaCol, widthDP));
 	}
 	std::sort(res.begin(), res.end()/*, cmpSimilarityResult*/);
 	sr = res[0];
@@ -308,53 +308,61 @@ float statusTrans(vector<vector<float>> &arr, int n, int m)
 {
 	float A, B, C;
 	if (n - 1 < 0 || n - 1 >= arr.size())
-		A = 0.0;
+		A = 1.0;
 	else
 		A = arr[n - 1][m];
 	if (m - 1 < 0 || m - 1 >= arr.size())
-		B = 0.0;
+		B = 1.0;
 	else
 		B = arr[n][m - 1];
 	if (n - 1 < 0 || n - 1 >= arr.size() || m - 1 < 0 || m - 1 >= arr.size())
-		C = 0.0;
+		C = 1.0;
 	else
 		C = arr[n - 1][m - 1];
-	return max(max(A,B),C);
+	return min(min(A,B),C);
 }
 
-PhaseSimilarityResult SimilarityEstimation::similaritySkylineOneDP(Skyline3DContour &sky1, Skyline3DContour &sky2, int deltaCol, int width)
+PhaseSimilarityResult SimilarityEstimation::similaritySkylineOneDPT2A(Skyline3DContour &tlsSkyline, Skyline3DContour &alsSkyline, int deltaCol, int width)
 {
 	PhaseSimilarityResult sr;
-	//初始化DP表
-	int skySize = sky2.Nh;
+	//初始化DP表，所有值设为无穷大
+	int skySize = alsSkyline.Nh;
 	vector<vector<float>> arr(skySize);
 	for (int i = 0; i < skySize; ++i)
 	{
-		arr[i].resize(skySize, 0.0);
+		arr[i].resize(skySize, 100.0);
 	}
-	arr[0][0] = sky1.pContours[0].getDistanceGaussianWeight(sky2.pContours[deltaCol]);
+	//初始化对角线上元素，设为0.0
+	for (int n = 0; n < skySize; ++n)
+	{
+		for (int m = max(0, n - width + 1); m <= min(skySize - 1, n + width-1); ++m)//逐个更新到对角线元素减一
+		{
+			arr[n][m] = 0.0;
+		}
+	}
+	//相似度转为距离，距离越小越相似，用1.0-getSimilarity
+	arr[0][0] = (1.0 - tlsSkyline.pContours[0].getSimilarityGaussianWeightT2A(alsSkyline.pContours[deltaCol], NvMin));
+	//按照DP算法更新，求两特征间的最小距离
 	for (int k = 1; k < skySize; ++k)
 	{
 
-		for (int i = k - width + 1; i < k; ++i)//逐个更新到对角线元素减一
+		for (int i = max(0, k - width + 1); i < k; ++i)//每行逐个更新到对角线元素减一
 		{
-			if (i<0) continue;
 			int kShift = k + deltaCol;
 			if (kShift >= skySize)
 				kShift -= skySize;
-			arr[i][k] = sky1.pContours[i].getDistanceGaussianWeight(sky2.pContours[kShift]) + statusTrans(arr, i, k);
+			arr[i][k] = (1.0 - tlsSkyline.pContours[i].getSimilarityGaussianWeightT2A(alsSkyline.pContours[kShift], NvMin)) + statusTrans(arr, i, k);
 		}
-		for (int j = k - width + 1; j <= k; ++j)//逐个更新到对角线元素
+		for (int j = max(0, k - width + 1); j <= k; ++j)//每列逐个更新到对角线元素
 		{
-			if (j<0) continue;
 			int jShift = j + deltaCol;
 			if (jShift >= skySize)
 				jShift -= skySize;
-			arr[k][j] = sky1.pContours[k].getDistanceGaussianWeight(sky2.pContours[jShift]) + statusTrans(arr, k, j);
+			arr[k][j] = (1.0 - tlsSkyline.pContours[k].getSimilarityGaussianWeightT2A(alsSkyline.pContours[jShift], NvMin)) + statusTrans(arr, k, j);
 		}
 	}
 	sr.phase_shift.x = deltaCol;
-	sr.response = arr[skySize - 1][skySize - 1]/skySize;
+	sr.response = 1.0 - arr[skySize - 1][skySize - 1]/skySize;//响应值越大越相似，距离转换为相似度，再用1.0-arr[][]
 	return sr;
 }
 
@@ -420,7 +428,7 @@ bool SimilarityEstimation::searchDictionaryBruteForce(TLSViewDescriptor &tvd, AL
 			case BySkylineAndDepth:
 				similarityBySkyLineAndDepth(tvd.TLSDescriptors->at(i), avd.ALSDescriptors->at(j), tempSimilarity);
 			case ByDPSkyline:
-				similarityDP(tvd.TLSDescriptors->at(i).skyline, avd.ALSDescriptors->at(j).skyline, tempSimilarity);
+				similarityDPT2A(tvd.TLSDescriptors->at(i).skyline, avd.ALSDescriptors->at(j).skyline, tempSimilarity);
 			}
 			tempSimilarity.alsIndex = j;
 			curTLSSimilarity.push_back(tempSimilarity);

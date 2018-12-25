@@ -536,6 +536,7 @@ void DataIo::readParalist(string paralistfile)
 	infile >> paralist.minAngle;
 	infile >> paralist.maxAngle;
 	infile >> paralist.heightScanner;
+	infile >> paralist.widthDP;
 
 	infile >> paralist.pathALSPointCloud;
 	infile >> paralist.saveALSFolderPre;
@@ -545,6 +546,7 @@ void DataIo::readParalist(string paralistfile)
 	infile >> paralist.pathALS3D;
 	infile >> paralist.pathTLS2D;
 	infile >> paralist.pathTLS3D;
+	infile >> paralist.pathALSDic;
 
 	paralist.Nv = int(180.0 / paralist.resolutionSkyDivision);
 	paralist.Nh = int(360.0 / paralist.resolutionSkyDivision);

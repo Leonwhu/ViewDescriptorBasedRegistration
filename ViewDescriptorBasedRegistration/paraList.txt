@@ -5,13 +5,15 @@
 20.0
 120.0
 1.5
+3
 C:\data\lqs-whole\lqs-ALS-Whole-StripMergeFilteredresult.las
 C:\data\lqs-whole\ALSDescriptors
-C:\data\lqs-whole\ALS-Whole-Viewpoints.las
+C:\data\ALS-TLS\viewpoints.las
 C:\data\lqs-whole\ALSDescriptors_ALS_2DImages
-C:\data\lqs-whole\ALSDescriptors_ALS_3DImages
+C:\data\ALS-TLS\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\lqs-whole\test-tls
+C:\data\lqs-whole\alsDic-60000.bin
 
 //Notification
 1   resolution of ALS grid
@@ -39,3 +41,4 @@ C:\data\lqs-whole\ALSDescriptors_ALS_2DImages
 C:\data\lqs-whole\ALSDescriptors_ALS_3DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_2DImages
 C:\data\ALS-TLS\TLSDescriptors_TLS_3DImages
+C:\data\lqs-whole\test-als

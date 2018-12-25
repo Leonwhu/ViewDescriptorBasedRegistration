@@ -25,6 +25,8 @@ void main()
 	
 	DataIo io;
 	io.readParalist("paraList.txt");
+	int NvMin = int(io.paralist.minAngle / io.paralist.resolutionSkyDivision);
+	int NvMax = int(io.paralist.maxAngle / io.paralist.resolutionSkyDivision);
 	/*-------1. 数据读取------*/
 	//读入机载数据
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloudALS(new pcl::PointCloud<pcl::PointXYZ>);
@@ -105,20 +107,33 @@ void main()
 	//io.sortFileNames(als2DImages);
 	//avd.read2DImagesAsDescriptors(als2DImages);/**/
 
-	//读入3D词典
+	//读入3D词典生成二进制文件
+	//ALSViewDescriptor avd;
+	//avd.setParamsByParalist(io.paralist);
+	//avd.ALSDescriptors = new vector<ViewDescriptor>();
+	//string pathALSDescriptors = io.paralist.pathALS3D;
+	//vector<string> als3DImages;
+	//string alsExtension = ".txt";
+	//io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als3DImages);
+	//io.sortFileNames(als3DImages);
+	//avd.read3DImagesAsDescriptors(als3DImages);
+	///*for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
+	//{
+	//avd.ALSDescriptors->at(i).convert2DImage(200.0);
+	//}*/
+	//for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
+	//{
+	//	//输出skyline特征
+	//	avd.ALSDescriptors->at(i).generateSkylineWithScanAngle(NvMin, NvMax);
+	//}
+	//avd.outputDictionaryBinary("alsDic.bin");
+
+	//读入二进制词典
 	ALSViewDescriptor avd;
+	avd.setParamsByParalist(io.paralist);
 	avd.ALSDescriptors = new vector<ViewDescriptor>();
 	string pathALSDescriptors = io.paralist.pathALS3D;
-	vector<string> als3DImages;
-	string alsExtension = ".txt";
-	io.readFileNamesInFolder(pathALSDescriptors, alsExtension, als3DImages);
-	io.sortFileNames(als3DImages);
-	avd.read3DImagesAsDescriptors(als3DImages);
-	for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
-	{
-		avd.ALSDescriptors->at(i).convert2DImage(200.0);
-	}
-
+	avd.readDictionaryBinary(io.paralist.pathALSDic.c_str());
 
 	/*-------3. 地面站词典生成/读取------*/	
 	TLSViewDescriptor tvd;
@@ -141,6 +156,12 @@ void main()
 	io.readFileNamesInFolder(pathTLSDescriptors, tlsExtension, tls3DImages);
 	io.sortFileNames(tls3DImages);
 	tvd.read3DImagesAsDescriptors(tls3DImages);/**/
+	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
+	{
+		//滤波并输出skyline特征
+		tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
+		tvd.TLSDescriptors->at(i).generateSkylineWithScanAngle(NvMin, NvMax);
+	}
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
 	//{
 	//	tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
@@ -154,27 +175,10 @@ void main()
 	//对每一地面站，从词典中进行特征匹配  
 	//vector<vector<PhaseSimilarityResult>> *similarity = new vector<vector<PhaseSimilarityResult>>();
 	SimilarityEstimation se;
-	se.setMinAngle(io.paralist.minAngle);
-	se.setMaxAngle(io.paralist.maxAngle);
-	se.setMinDist(io.paralist.minDist);
-	se.setMaxDist(io.paralist.maxDist);
-	se.setResolution(io.paralist.resolutionSkyDivision);
-
-
-	int NvMin = int(io.paralist.minAngle / io.paralist.resolutionSkyDivision);
-	int NvMax = int(io.paralist.maxAngle / io.paralist.resolutionSkyDivision);
-	for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)
-	{
-		//滤波并输出skyline特征
-		tvd.TLSDescriptors->at(i).filterNoiseBy2DDensity(2, 3);
-		tvd.TLSDescriptors->at(i).generateSkylineWithScanAngle(NvMin, NvMax);
-	}
-	for (int i = 0; i < avd.ALSDescriptors->size(); ++i)
-	{
-		//输出skyline特征
-		avd.ALSDescriptors->at(i).generateSkylineWithScanAngle(NvMin, NvMax);
-	}
+	se.setParamsByParalist(io.paralist);
 	se.searchDictionaryBruteForce(tvd, avd, ByDPSkyline, cloudALSViews);
+	
+
 	//相位相关法，2D深度图不做处理
 	//ofstream ofs_PhaseCorre("All_PhaseCorre.txt");
 	//for (int i = 0; i < tvd.TLSDescriptors->size(); ++i)

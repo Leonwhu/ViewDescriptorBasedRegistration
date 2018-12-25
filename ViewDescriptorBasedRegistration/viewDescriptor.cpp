@@ -137,9 +137,18 @@ void ViewDescriptor::outputViewDescriptor3DImage(const string &filename)
 	ofs.close();
 }
 
-void ViewDescriptor::outputViewDescriptorSkyline(const string &filename)
+void ViewDescriptor::outputViewDescriptor3DSkyline(const string &filename)
 {
-
+	ofstream ofs;
+	ofs.open(filename);
+	if (ofs.is_open())
+	{
+		for (int j = 0; j < Nh; ++j)
+		{
+			ofs << j << " " << Nv - skyline.pContours[j].zenithAngle << " " << skyline.pContours[j].depth << endl;
+		}
+	}
+	ofs.close();
 }
 
 void ViewDescriptor::outputViewDescriptor2DImage(const string &filename)
@@ -235,13 +244,13 @@ void ViewDescriptor::generateSkyline()
 	skyline.pContours.resize(skyline.Nh);
 	for (int j = 0; j < Nh; ++j)
 	{
-		skyline.pContours[j].highAngle = Nv;
+		skyline.pContours[j].zenithAngle = Nv;
 		skyline.pContours[j].depth = -1.0;
 		for (int i = 0; i < Nv; ++i)
 		{
 			if (viewDepth[j + i*Nh] > 0.0)
 			{
-				skyline.pContours[j].highAngle = i;
+				skyline.pContours[j].zenithAngle = i;
 				skyline.pContours[j].depth = viewDepth[j + i*Nh];
 				break;
 			}
@@ -255,16 +264,42 @@ void ViewDescriptor::generateSkylineWithScanAngle(int NvMin, int NvMax)
 	skyline.pContours.resize(skyline.Nh);
 	for (int j = 0; j < Nh; ++j)
 	{
-		skyline.pContours[j].highAngle = NvMax;
+		skyline.pContours[j].zenithAngle = NvMax;
 		skyline.pContours[j].depth = -1.0;
 		for (int i = NvMin; i <= NvMax; ++i)
 		{
 			if (viewDepth[j + i*Nh] > 0.0)
 			{
-				skyline.pContours[j].highAngle = i;
+				skyline.pContours[j].zenithAngle = i;
 				skyline.pContours[j].depth = viewDepth[j + i*Nh];
 				break;
 			}
 		}
 	}
+}
+
+Skyline3DContour ViewDescriptor::cutSkylineWithScanAngle()
+{
+	Skyline3DContour cutSkyline;
+	cutSkyline.Nh = Nh;
+	cutSkyline.pContours.resize(skyline.Nh);
+	for (int j = 0; j < Nh; ++j)
+	{
+		if (skyline.pContours[j].zenithAngle < NvMin)
+		{
+			cutSkyline.pContours[j].zenithAngle = NvMin;
+			cutSkyline.pContours[j].depth = skyline.pContours[j].depth;//被修改过的天际线边界，深度值信息已不可靠，上边界保留原深度
+		}
+		else if (skyline.pContours[j].zenithAngle > NvMax)
+		{
+			cutSkyline.pContours[j].zenithAngle = NvMax;
+			cutSkyline.pContours[j].depth = -1.0;//被修改过的天际线边界，深度值信息已不可靠，下边界赋为负值表示无意义
+		}
+		else
+		{
+			cutSkyline.pContours[j].zenithAngle = skyline.pContours[j].zenithAngle;
+			cutSkyline.pContours[j].depth = skyline.pContours[j].depth;
+		}
+	}
+	return cutSkyline;
 }

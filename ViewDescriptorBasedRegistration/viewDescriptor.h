@@ -54,8 +54,9 @@ public:
 	void filterNoiseBy2DDensity(int radius, int minNum);
 
 	void generateSkyline();
-	void generateSkylineWithScanAngle(int NvMin, int NvMax);
-	void outputViewDescriptorSkyline(const string &filename);
+	void generateSkylineWithScanAngle(int NvMin, int NvMax);//For TLS
+	Skyline3DContour cutSkylineWithScanAngle();//ALS skyline to TLS skyline
+	void outputViewDescriptor3DSkyline(const string &filename);
 
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
